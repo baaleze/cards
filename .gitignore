@@ -4,9 +4,11 @@
 /dist
 /tmp
 /out-tsc
+/src/main/resources/ngcards
+/target
 
 # dependencies
-/node_modules
+/ngcards/node_modules
 
 # IDEs and editors
 /.idea
