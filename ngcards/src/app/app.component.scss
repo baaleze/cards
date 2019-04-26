@@ -1,0 +1,23 @@
+#chat {
+    width: 20%;
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    height: 100%;
+    display: table;
+    border: 1px solid #ccc;
+
+    #chat-show {
+        width: 100%;
+        display: table-row;
+    }
+
+    #chat-type-area {
+        height: 100px;
+        border: 1px solid #ccc;
+        overflow-x: hidden;
+        overflow-y: auto;
+        display: table-row;
+        width: 100%;
+    }
+}
