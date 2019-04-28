@@ -10,6 +10,7 @@ import { WebsocketService } from '../websocket.service';
 export class GamelistComponent implements OnInit {
 
   games: Game[];
+  gameTitle = '';
 
   constructor(private websocket: WebsocketService) { }
 
@@ -21,6 +22,12 @@ export class GamelistComponent implements OnInit {
         }
       }
     )
+  }
+
+  createGame() {
+    if (this.gameTitle !== '') {
+      this.websocket.send({type: 'CREATE_GAME', message: this.gameTitle});
+    }
   }
 
 }

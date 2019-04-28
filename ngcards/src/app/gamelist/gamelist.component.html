@@ -1,8 +1,14 @@
 <h1>GAME LIST</h1>
-<div *ngFor="let game of games">
-  {{ game.name }}
-  Players
-  <ul>
-    <li *ngFor="let p of game.players">{{p.name}}</li>
-  </ul>
+<div id="games">
+  <div class="game-tile" *ngFor="let game of games">
+    {{ game.name }}
+    Players
+    <ul>
+      <li *ngFor="let p of game.players">{{p.name}}</li>
+    </ul>
+  </div>
+  <div class="game-tile">
+    <input [(ngModel)]="gameTitle" />
+    <button (click)="createGame()" [disabled]="gameTitle === ''">NEW GAME</button>
+    </div>
 </div>

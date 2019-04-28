@@ -61,9 +61,9 @@ fun handleMessage(message: JSONObject, session: WsSession) {
                 val user = loggedSession[session]!!
                 when (message.getString("type")) {
                     "LOGOUT" -> logout(session)
-                    "CREATE_GAME" -> createGame(message.getString("name"), session, user)
+                    "CREATE_GAME" -> createGame(message.getString("message"), session, user)
                     "GAME_LIST" -> broadcastGameList(session)
-                    "JOIN" -> join(message.getString("name"), session, user)
+                    "JOIN" -> join(message.getString("message"), session, user)
                     "CHAT" -> chat(message.getString("message"), session, user)
                     else -> {
                         sendToGame(message, session)

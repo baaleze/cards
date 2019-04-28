@@ -1,0 +1,10 @@
+#games{
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    grid-gap: 15px;
+    .game-tile {
+        width: 100%;
+        height: 100%;
+    }
+}
