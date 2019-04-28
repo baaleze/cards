@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { WebsocketService, Message } from './websocket.service';
-import { WebSocketSubject } from 'rxjs/webSocket';
+import { Subject, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -8,48 +8,56 @@ import { WebSocketSubject } from 'rxjs/webSocket';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
-  socket$: WebSocketSubject<Message>;
+  socket$: Subject<Message>;
   chatContent: string[] = [];
   chatInput: string;
   nameInput = '';
   name: string;
+  connected = false;
+  connection: Subscription;
 
   constructor(private websocket: WebsocketService) {}
 
   ngOnInit() {
+    this.websocket.connectionState.subscribe(
+      connectionState => {
+        if (connectionState && this.nameInput !== '') {
+          // connected, do login
+          this.websocket.send({type: "LOGIN", message: this.nameInput});
+          this.name = this.nameInput;
+        } else if (!connectionState) {
+          // disconnected
+          this.name = undefined;
+          this.socket$.unsubscribe();
+        }
+        this.connected = connectionState;
+      }
+    )
   }
 
   login() {
-    this.connect(this.nameInput);
+    this.socket$ = this.websocket.connect();
+    this.connection = this.socket$.subscribe(
+      m => this.handleMessage(m)
+    );
+    
+    // login if already connected
+    if (this.connected) {
+      this.websocket.send({type: "LOGIN", message: this.nameInput});
+          this.name = this.nameInput;
+    }
+    
   }
 
   logout() {
-    this.socket$.complete();
     this.name = undefined;
+    this.websocket.send({type: 'LOGOUT'});
+    this.connection.unsubscribe();
   }
 
   sendChatMessage() {
-    if (this.socket$) {
-      this.socket$.next({type: 'CHAT', message: this.chatInput});
-      this.chatInput = '';
-    } else {
-      console.error('NO CONNECTION');
-    }
-  }
-
-  connect(name: string) {
-    // get a socket
-    this.socket$ = this.websocket.getConnection$();
-    this.socket$.subscribe(
-      m => this.handleMessage(m),
-      error => this.handleConnectionError(error),
-      () => {
-        console.warn('connection to server is gone!');
-        this.name = undefined;
-      }
-    )
-    this.socket$.next({type: "LOGIN", message: name});
-    this.name = name;
+    this.websocket.send({type: 'CHAT', message: this.chatInput});
+    this.chatInput = '';
   }
 
   handleMessage(message: Message): void {
@@ -68,11 +76,6 @@ export class AppComponent implements OnInit {
         this.name = undefined;
         break;
     }
-  }
-
-  handleConnectionError(error: any) {
-    this.name = undefined;
-    console.error(error);
   }
 
 }

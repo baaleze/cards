@@ -2,6 +2,9 @@ package fr.varhen
 
 import io.javalin.Javalin
 import io.javalin.websocket.WsSession
+import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.server.ServerConnector
+import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.util.concurrent.ConcurrentHashMap
@@ -11,7 +14,16 @@ val loggedSession = ConcurrentHashMap<WsSession, User>()
 val games = mutableListOf<Game>()
 
 fun main(args: Array<String>) {
-    Javalin.create().apply {
+    Javalin.create().server {
+        val server = Server()
+        server.apply {
+            connectors = arrayOf(ServerConnector(this).apply {
+                host = "localhost"
+                port = 8080
+            })
+        }
+        server
+    }.apply {
         enableStaticFiles("/ngcards")
         ws("/ws") { ws ->
             ws.onConnect { session ->
@@ -33,7 +45,7 @@ fun main(args: Array<String>) {
                 }
             }
         }
-    }.start(7070)
+    }.start()
 }
 
 fun handleMessage(message: JSONObject, session: WsSession) {
@@ -48,6 +60,9 @@ fun handleMessage(message: JSONObject, session: WsSession) {
             } else {
                 val user = loggedSession[session]!!
                 when (message.getString("type")) {
+                    "LOGOUT" -> logout(session)
+                    "CREATE_GAME" -> createGame(message.getString("name"), session, user)
+                    "GAME_LIST" -> broadcastGameList(session)
                     "JOIN" -> join(message.getString("name"), session, user)
                     "CHAT" -> chat(message.getString("message"), session, user)
                     else -> {
@@ -60,11 +75,30 @@ fun handleMessage(message: JSONObject, session: WsSession) {
     }
 }
 
+fun createGame(name: String?, session: WsSession, user: User) {
+    if (name == null) {
+        sendError("Missing message", Error.MISSING_CHAT_MESSAGE, session)
+    } else {
+        val game = Game(name)
+        game.players.add(user)
+        games.add(game)
+        broadcastGameList()
+    }
+}
+
+fun broadcastGameList(session: WsSession? = null) {
+    if (session != null) {
+        session.send(JSONObject().put("type", "GAME_LIST").put("data", JSONArray(games)).toString())
+    } else {
+        broadcastJson(JSONObject().put("type", "GAME_LIST").put("data", JSONArray(games)))
+    }
+}
+
 fun chat(string: String?, session: WsSession, user: User) {
     if (string == null) {
         sendError("Missing message", Error.MISSING_CHAT_MESSAGE, session)
     } else {
-        broadcast(string, user.name)
+        broadcastChat(string, user.name)
     }
 }
 
@@ -75,7 +109,7 @@ fun join(name: String?, session: WsSession, user: User) {
         if(!game.join(user)) {
             sendError("Game ${game.name} is full", Error.GAME_FULL, session)
         } else {
-            broadcast("${user.name} has joined game ${game.name}")
+            broadcastChat("${user.name} has joined game ${game.name}")
         }
     } else {
         sendError("Game $name does not exist", Error.GAME_NOT_FOUND, session)
@@ -87,11 +121,11 @@ fun login(name: String, session: WsSession) {
     val user = users.find { name == it.name && (session.host() ?: "") == it.ip } ?: User(session.host() ?: "", name)
     // link to session
     loggedSession[session] = user
-    broadcast("$name has logged in")
+    broadcastChat("$name has logged in")
 }
 
 fun logout(session: WsSession) {
-    broadcast("${loggedSession[session]?.name} has logged out")
+    broadcastChat("${loggedSession[session]?.name} has logged out")
     loggedSession.remove(session)
 }
 
@@ -110,7 +144,11 @@ fun sendError(error: String, errorCode: Error, session: WsSession) {
     session.send(JSONObject().put("type", "ERROR").put("message", error).put("errorCode", errorCode.toString()).toString())
 }
 
-fun broadcast(message: String, sender: String = "Admin") {
+fun broadcastChat(message: String, sender: String = "Admin") {
     loggedSession.forEach {(s, u) -> s.send(JSONObject().put("type", "CHAT").put("message", "[ $sender ] : $message").toString())}
+}
+
+fun broadcastJson(json: JSONObject) {
+    loggedSession.forEach {(s, u) -> s.send(json.toString())}
 }
 

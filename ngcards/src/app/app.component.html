@@ -1,7 +1,7 @@
 <div id="chat">
   <div id="connection" *ngIf="name === undefined" >
     <label>Input Name:</label>
-    <input [(ngModel)]="nameInput" type="text" />
+    <input [(ngModel)]="nameInput" type="text" (keydown.enter)="login()" />
     <button (click)="login()" [disabled]="!nameInput || nameInput === ''" >LOGIN</button>
   </div>
   <ng-container *ngIf="name && name !== ''">
@@ -10,7 +10,7 @@
       <div *ngFor="let c of chatContent">{{ c }}</div>
     </div>
     <div id="chat-type-area">
-      <textarea [(ngModel)]="chatInput" ></textarea>
+      <textarea [(ngModel)]="chatInput" (keydown.control.enter)="sendChatMessage()" ></textarea>
       <button (click)="sendChatMessage()" id="send-button">SEND</button>
     </div>
   </ng-container>

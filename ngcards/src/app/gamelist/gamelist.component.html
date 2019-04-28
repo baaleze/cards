@@ -1,0 +1,8 @@
+<h1>GAME LIST</h1>
+<div *ngFor="let game of games">
+  {{ game.name }}
+  Players
+  <ul>
+    <li *ngFor="let p of game.players">{{p.name}}</li>
+  </ul>
+</div>
