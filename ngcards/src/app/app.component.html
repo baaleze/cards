@@ -1,9 +1,18 @@
-<!--The content below is only a placeholder and can be replaced.-->
 <div id="chat">
-  <div id="chat-show">fbskjfhskdf
-    sdfksjflsf
-    sdfljsdfsf
+  <div id="connection" *ngIf="name === undefined" >
+    <label>Input Name:</label>
+    <input [(ngModel)]="nameInput" type="text" />
+    <button (click)="login()" [disabled]="!nameInput || nameInput === ''" >LOGIN</button>
   </div>
-  <div id="chat-type-area" contenteditable>qdqd</div>
+  <ng-container *ngIf="name && name !== ''">
+    <button id="logout-btn" (click)="logout()">LOGOUT</button>
+    <div id="chat-show" >
+      <div *ngFor="let c of chatContent">{{ c }}</div>
+    </div>
+    <div id="chat-type-area">
+      <textarea [(ngModel)]="chatInput" ></textarea>
+      <button (click)="sendChatMessage()" id="send-button">SEND</button>
+    </div>
+  </ng-container>
 </div>
 <router-outlet></router-outlet>

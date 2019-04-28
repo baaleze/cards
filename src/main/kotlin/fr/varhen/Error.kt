@@ -1,0 +1,12 @@
+package fr.varhen
+
+enum class Error {
+    NOT_LOGGED_IN,
+    JSON_INVALID,
+    MISSING_MESSAGE_TYPE,
+    MISSING_CHAT_MESSAGE,
+    GAME_NOT_FOUND,
+    PLAYER_NOT_IN_GAME,
+    GAME_FULL,
+    SERVER_ERROR
+}

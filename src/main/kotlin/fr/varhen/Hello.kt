@@ -2,6 +2,7 @@ package fr.varhen
 
 import io.javalin.Javalin
 import io.javalin.websocket.WsSession
+import org.json.JSONException
 import org.json.JSONObject
 import java.util.concurrent.ConcurrentHashMap
 
@@ -9,7 +10,7 @@ val users = mutableListOf<User>()
 val loggedSession = ConcurrentHashMap<WsSession, User>()
 val games = mutableListOf<Game>()
 
-fun main() {
+fun main(args: Array<String>) {
     Javalin.create().apply {
         enableStaticFiles("/ngcards")
         ws("/ws") { ws ->
@@ -22,7 +23,14 @@ fun main() {
             }
             ws.onMessage { session, message ->
                 // handle message
-                handleMessage(JSONObject(message), session)
+                try {
+                    handleMessage(JSONObject(message), session)
+                } catch (e: JSONException) {
+                    sendError("Incorrect JSON: $message", Error.JSON_INVALID, session)
+                } catch (e: Exception) {
+                    sendError("Server error ${e.message}", Error.SERVER_ERROR, session)
+                    e.printStackTrace()
+                }
             }
         }
     }.start(7070)
@@ -30,12 +38,12 @@ fun main() {
 
 fun handleMessage(message: JSONObject, session: WsSession) {
     when(message.getString("type") ?: "NULL") {
-        "NULL" -> sendError("Missing type in message! $message", session) // missing type!
-        "LOGIN" -> login(message.getString("name"), session)
+        "NULL" -> sendError("Missing type in message! $message", Error.MISSING_MESSAGE_TYPE, session) // missing type!
+        "LOGIN" -> login(message.getString("message"), session)
         else -> {
             // check if logged in for all other actions
-            if (!loggedSession.contains(session)) {
-                sendError("Can't do that, the session did not login", session)
+            if (!loggedSession.containsKey(session)) {
+                sendError("Can't do that, the session did not login", Error.NOT_LOGGED_IN, session)
                 return
             } else {
                 val user = loggedSession[session]!!
@@ -54,9 +62,9 @@ fun handleMessage(message: JSONObject, session: WsSession) {
 
 fun chat(string: String?, session: WsSession, user: User) {
     if (string == null) {
-        sendError("Missing message", session)
+        sendError("Missing message", Error.MISSING_CHAT_MESSAGE, session)
     } else {
-        broadcast(string, session, user.name)
+        broadcast(string, user.name)
     }
 }
 
@@ -65,12 +73,12 @@ fun join(name: String?, session: WsSession, user: User) {
     val game = games.find { it.players.contains(user) }
     if (game != null) {
         if(!game.join(user)) {
-            sendError("Game ${game.name} is full", session)
+            sendError("Game ${game.name} is full", Error.GAME_FULL, session)
         } else {
-            broadcast("${user.name} has joined game ${game.name}", session)
+            broadcast("${user.name} has joined game ${game.name}")
         }
     } else {
-        sendError("Game $name does not exist", session)
+        sendError("Game $name does not exist", Error.GAME_NOT_FOUND, session)
     }
 }
 
@@ -79,11 +87,11 @@ fun login(name: String, session: WsSession) {
     val user = users.find { name == it.name && (session.host() ?: "") == it.ip } ?: User(session.host() ?: "", name)
     // link to session
     loggedSession[session] = user
-    broadcast("$name has logged in", session)
+    broadcast("$name has logged in")
 }
 
 fun logout(session: WsSession) {
-    broadcast("${loggedSession[session]?.name} has logged out", session)
+    broadcast("${loggedSession[session]?.name} has logged out")
     loggedSession.remove(session)
 }
 
@@ -94,15 +102,15 @@ fun sendToGame(message: JSONObject, session: WsSession) {
     if (game != null) {
         game.handleMessage(message, session)
     } else {
-        sendError("Player ${user.name} is in no game", session)
+        sendError("Player ${user.name} is in no game", Error.PLAYER_NOT_IN_GAME, session)
     }
 }
 
-fun sendError(error: String, session: WsSession) {
-    session.send(JSONObject().put("type", "ERROR").put("message", error).toString())
+fun sendError(error: String, errorCode: Error, session: WsSession) {
+    session.send(JSONObject().put("type", "ERROR").put("message", error).put("errorCode", errorCode.toString()).toString())
 }
 
-fun broadcast(message: String, session: WsSession, sender: String = "Admin") {
-    session.send(JSONObject().put("type", "CHAT").put("message", "[ $sender ] : $message").toString())
+fun broadcast(message: String, sender: String = "Admin") {
+    loggedSession.forEach {(s, u) -> s.send(JSONObject().put("type", "CHAT").put("message", "[ $sender ] : $message").toString())}
 }
 
