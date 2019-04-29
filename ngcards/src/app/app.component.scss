@@ -19,6 +19,15 @@
         height: 20px;
     }
 
+    #user-list {
+        position: absolute;
+        top: 40px;
+        right: 5px;
+        width: 70%;
+        background-color: rgba(252, 106, 9, 0.2);
+        border: 1px solid rgba(252, 106, 9, 1);
+    }
+
     #chat-show {
         width: 100%;
         display: table-row;

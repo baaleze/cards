@@ -3,7 +3,7 @@ package fr.varhen
 import io.javalin.websocket.WsSession
 import org.json.JSONObject
 
-class Game(val name: String) {
+abstract class Game(val name: String) {
     val playerLimit = 4
     val players = mutableListOf<User>()
 
@@ -16,7 +16,11 @@ class Game(val name: String) {
         }
     }
 
-    fun handleMessage(message: JSONObject, session: WsSession) {
-        TODO("not implemented")
-    }
+    abstract fun handleMessage(
+        message: JSONObject,
+        session: WsSession,
+        user: User
+    )
+
+    abstract fun generateInfo(): JSONObject
 }

@@ -2,10 +2,15 @@
 <div id="games">
   <div class="game-tile" *ngFor="let game of games">
     {{ game.name }}
-    Players
-    <ul>
-      <li *ngFor="let p of game.players">{{p.name}}</li>
-    </ul>
+    <button *ngIf="!playerInGame(game)"
+      (click)="joinGame(game)">JOIN</button>
+    <button *ngIf="playerInGame(game)"
+      (click)="playGame(game)">PLAY</button>
+    <div>Players
+      <ul>
+        <li *ngFor="let p of game.players">{{p.name}}</li>
+      </ul>
+    </div>
   </div>
   <div class="game-tile">
     <input [(ngModel)]="gameTitle" />

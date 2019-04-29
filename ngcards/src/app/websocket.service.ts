@@ -15,8 +15,8 @@ export class WebsocketService {
   constructor() { }
 
   getConnection$() {
-      return webSocket<Message>(`ws://${window.location.host}/ws`);
-      //return webSocket<Message>(`ws://localhost:8080/ws`);
+      // return webSocket<Message>(`ws://${window.location.host}/ws`);
+      return webSocket<Message>(`ws://localhost:8080/ws`);
   }
 
   connect(reconnect = false): Subject<Message> {
@@ -25,11 +25,15 @@ export class WebsocketService {
       this.socket$ = this.getConnection$();
       this.out$ = new Subject<Message>();
       this.socket$.subscribe(
-        m => this.out$.next(m),
+        m => {
+          console.log('WS IN', m);
+          this.out$.next(m);
+        },
         error => this.handleConnectionError(error),
         () => {
           console.warn('connection to server is gone!');
           this.connectionState.emit(false);
+          this.socket$ = undefined;
         }
       );
       this.connectionState.emit(true);
@@ -38,6 +42,7 @@ export class WebsocketService {
   }
 
   send(message: Message) {
+    console.log('WS OUT', message);
     this.socket$.next(message);
   }
 

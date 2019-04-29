@@ -1,5 +1,6 @@
 package fr.varhen
 
+import fr.varhen.cards.CardGame
 import io.javalin.Javalin
 import io.javalin.websocket.WsSession
 import org.eclipse.jetty.server.Server
@@ -63,10 +64,11 @@ fun handleMessage(message: JSONObject, session: WsSession) {
                     "LOGOUT" -> logout(session)
                     "CREATE_GAME" -> createGame(message.getString("message"), session, user)
                     "GAME_LIST" -> broadcastGameList(session)
-                    "JOIN" -> join(message.getString("message"), session, user)
+                    "GET_GAME_INFO" -> broadcastGameInfo(message.getString("message"), session)
+                    "JOIN_GAME" -> join(message.getString("message"), session, user)
                     "CHAT" -> chat(message.getString("message"), session, user)
                     else -> {
-                        sendToGame(message, session)
+                        sendToGame(message, session, user)
                     }
                 }
             }
@@ -75,14 +77,43 @@ fun handleMessage(message: JSONObject, session: WsSession) {
     }
 }
 
+fun broadcastGameInfo(gameName: String?, session: WsSession? = null) {
+    if (gameName == null) {
+        if (session != null) {
+            sendError("Missing game name", Error.MISSING_GAME_NAME, session)
+        } else {
+            error("SHOULD NOT HAPPEN WTF")
+        }
+    } else {
+        val game = games.find { it.name == gameName }
+        if (game != null) {
+            broadcastJson(game.generateInfo(), game.players)
+        } else {
+            if (session != null) {
+                sendError("Game not found", Error.GAME_NOT_FOUND, session)
+            } else {
+                error("SHOULD NOT HAPPEN WTF")
+            }
+        }
+    }
+}
+
 fun createGame(name: String?, session: WsSession, user: User) {
     if (name == null) {
-        sendError("Missing message", Error.MISSING_CHAT_MESSAGE, session)
+        sendError("Missing game name", Error.MISSING_GAME_NAME, session)
     } else {
-        val game = Game(name)
+        val game = CardGame(name)
         game.players.add(user)
         games.add(game)
         broadcastGameList()
+    }
+}
+
+fun broadcastUserList(session: WsSession? = null) {
+    if (session != null) {
+        session.send(JSONObject().put("type", "USER_LIST").put("data", JSONArray(loggedSession.map { (s, u) -> u })).toString())
+    } else {
+        broadcastJson(JSONObject().put("type", "USER_LIST").put("data", JSONArray(loggedSession.map { (s, u) -> u })))
     }
 }
 
@@ -103,13 +134,16 @@ fun chat(string: String?, session: WsSession, user: User) {
 }
 
 fun join(name: String?, session: WsSession, user: User) {
-    // find a game the user is in
-    val game = games.find { it.players.contains(user) }
+    // find the game from name
+    val game = games.find { it.name == name }
     if (game != null) {
-        if(!game.join(user)) {
+        if (game.players.contains(user)){ // already in it do nothing
+            return
+        } else if(!game.join(user)) {
             sendError("Game ${game.name} is full", Error.GAME_FULL, session)
         } else {
             broadcastChat("${user.name} has joined game ${game.name}")
+            broadcastGameList()
         }
     } else {
         sendError("Game $name does not exist", Error.GAME_NOT_FOUND, session)
@@ -118,23 +152,30 @@ fun join(name: String?, session: WsSession, user: User) {
 
 fun login(name: String, session: WsSession) {
     // create if the user doesn't exist
-    val user = users.find { name == it.name && (session.host() ?: "") == it.ip } ?: User(session.host() ?: "", name)
+    var user = users.find { name == it.name && (session.host() ?: "") == it.ip };
+    if (user == null) {
+        user = User(session.host() ?: "", name)
+        users.add(user)
+    }
     // link to session
     loggedSession[session] = user
     broadcastChat("$name has logged in")
+    broadcastUserList()
+    broadcastGameList(session)
 }
 
 fun logout(session: WsSession) {
     broadcastChat("${loggedSession[session]?.name} has logged out")
     loggedSession.remove(session)
+    broadcastUserList()
 }
 
-fun sendToGame(message: JSONObject, session: WsSession) {
-    val user = loggedSession[session]!!
+fun sendToGame(message: JSONObject, session: WsSession, user: User) {
     // find a game the user is in
     val game = games.find { it.players.contains(user) }
     if (game != null) {
-        game.handleMessage(message, session)
+        game.handleMessage(message, session, user)
+        broadcastGameInfo(game.name, session)
     } else {
         sendError("Player ${user.name} is in no game", Error.PLAYER_NOT_IN_GAME, session)
     }
@@ -148,7 +189,17 @@ fun broadcastChat(message: String, sender: String = "Admin") {
     loggedSession.forEach {(s, u) -> s.send(JSONObject().put("type", "CHAT").put("message", "[ $sender ] : $message").toString())}
 }
 
-fun broadcastJson(json: JSONObject) {
-    loggedSession.forEach {(s, u) -> s.send(json.toString())}
+fun broadcastJson(json: JSONObject, users: MutableList<User>? = null) {
+    if (users == null) {
+        loggedSession.forEach { (s, u) -> s.send(json.toString()) }
+    } else {
+        users.forEach {
+            loggedSession.forEach { t: WsSession, u: User ->
+                if (u == it) {
+                    t.send(json.toString())
+                }
+            }
+        }
+    }
 }
 

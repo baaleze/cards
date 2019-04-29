@@ -1,11 +1,19 @@
 <div id="chat">
-  <div id="connection" *ngIf="name === undefined" >
+  <div id="connection" *ngIf="!session.getConnectedUser()" >
     <label>Input Name:</label>
     <input [(ngModel)]="nameInput" type="text" (keydown.enter)="login()" />
     <button (click)="login()" [disabled]="!nameInput || nameInput === ''" >LOGIN</button>
   </div>
-  <ng-container *ngIf="name && name !== ''">
+  <ng-container *ngIf="session.getConnectedUser()">
     <button id="logout-btn" (click)="logout()">LOGOUT</button>
+    <div id="user-list">
+      <div>Connected as {{session.getConnectedUser() | user}}</div>
+      <ul>
+        <li *ngFor="let u of userList">
+          {{u | user}}
+        </li>
+      </ul>
+    </div>
     <div id="chat-show" >
       <div *ngFor="let c of chatContent">{{ c }}</div>
     </div>
@@ -15,6 +23,6 @@
     </div>
   </ng-container>
 </div>
-<div class="main">
+<div class="main" *ngIf="session.getConnectedUser()">
 <router-outlet></router-outlet>
 </div>

@@ -8,5 +8,9 @@ enum class Error {
     GAME_NOT_FOUND,
     PLAYER_NOT_IN_GAME,
     GAME_FULL,
-    SERVER_ERROR
+    SERVER_ERROR,
+
+    MISSING_GAME_NAME,
+
+    ILLEGAL_ACTION
 }
