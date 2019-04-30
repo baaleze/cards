@@ -63,7 +63,18 @@ class CardGame(val n: String) : Game(n) {
     }
 
     override fun generateInfo(): JSONObject {
-        TODO("not implemented")
+        return JSONObject().put("type", "GAME_INFO").put("data", JSONObject()
+            .put("boards", JSONArray(boards.map { (u, b) -> boardInfo(b, u) }))
+            .put("players", JSONArray(players.map{ playerInfo(it)}))
+        )// TODO
+    }
+
+    private fun playerInfo(it: User): JSONObject {
+        return JSONObject().put("","") // TODO
+    }
+
+    private fun boardInfo(b: Array<Array<Tile?>>, u: User): JSONObject {
+        return JSONObject().put("user", u).put("tiles", JSONArray(b))
     }
 
     fun roll() {
