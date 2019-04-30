@@ -12,7 +12,7 @@ class CardGame(val n: String) : Game(n) {
     var gameState: GameState = Starting(this)
     val supply = mutableListOf<Tile>()
     val allTiles = buildAllTiles()
-    val boards = mutableMapOf<User, Array<Array<Tile>>>()
+    val boards = mutableMapOf<User, Array<Array<Tile?>>>()
     val gold = mutableMapOf<User, Int>()
     val points = mutableMapOf<User, Int>()
     val minusTokens = mutableMapOf<User, Int>()
@@ -93,10 +93,98 @@ class CardGame(val n: String) : Game(n) {
 
     private fun buildAllTiles(): MutableList<Tile> {
         return mutableListOf(
-            Tile(5, arrayOf(arrayOf(1)), 2, 0, 0, 0)
+            Tile(5, arrayOf(), 2, 0, 0, 0)
         ).run {
             shuffle()
             this
+        }
+    }
+
+    /**
+     * Applies the dice roll to get resources.
+     * The main gameplay mechanics lies HERE.
+     */
+    fun applyRoll(user: User) {
+        val board = boards[user]!!
+        val reward = advanceOnBoard(2, 2, 0,0,0,0, diceRoll, mutableListOf(), board)
+        // apply the reward
+        gold[user] = gold[user]!! + reward.gold
+        points[user] = points[user]!! + reward.points
+        minusTokens[user] = minusTokens[user]!! + reward.minusTokens
+        plusTokens[user] = plusTokens[user]!! + reward.plusTokens
+    }
+
+    private fun advanceOnBoard(
+        x: Int, y: Int,
+        gold: Int,
+        points: Int,
+        minusTokens: Int,
+        plusTokens: Int,
+        diceRoll: Int,
+        visitedTiles: MutableList<Tile>,
+        board: Array<Array<Tile?>>
+    ): Reward {
+        val currentTile = board[x][y]!!
+        visitedTiles.add(currentTile)
+        // get bonus on current tile
+        var newGold = gold + currentTile.gold
+        var newPoints = points + currentTile.points
+        var newMinusTokens = minusTokens + currentTile.minusTokens
+        var newPlusTokens = plusTokens + currentTile.plusTokens
+        val newX: Int
+        val newY: Int
+
+        // get next tile
+        when(currentTile.directions[diceRoll]) {
+            0 -> {
+                newX = x-2
+                newY = y
+            }
+            1 -> {
+                newX = x-1
+                newY = y + (x+1)%2
+            }
+            2 -> {
+                newX = x+1
+                newY = y+ (x+1)%2
+            }
+            3 -> {
+                newX = x+2
+                newY = y
+            }
+            4 -> {
+                newX = x+1
+                newY = y-(x%2)
+            }
+            5 -> {
+                newX = x-1
+                newY = y-(x%2)
+            }
+            else -> return Reward(newGold, newPoints, newMinusTokens, newPlusTokens)
+        }
+        val nextTile = board.getOrNull(newX)?.getOrNull(newY)
+
+        when {
+            nextTile == null -> // no more tiles
+                return Reward(newGold, newPoints, newMinusTokens, newPlusTokens)
+            visitedTiles.contains(nextTile) -> {
+                // loop! get double the bonus for the tile that looped
+                var inLoop = false
+                for(t in visitedTiles) {
+                    if (t == nextTile) {
+                        inLoop = true // we arrived in the loop begin to get bonus
+                    }
+                    if (inLoop) {
+                        newGold += t.gold
+                        newPoints += t.points
+                        newMinusTokens += t.minusTokens
+                        newPlusTokens += t.plusTokens
+                    }
+                }
+                return Reward(newGold, newPoints, newMinusTokens, newPlusTokens)
+            }
+            else -> // next
+                return advanceOnBoard(newX, newY, newGold, newPoints, newMinusTokens, newPlusTokens, diceRoll, visitedTiles, board)
         }
     }
 }

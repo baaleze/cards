@@ -25,10 +25,12 @@ class AwatingPlay(game: CardGame, user: User) : GameState(game, user) {
                     cardGame.roll()
                     val nextIndex = (cardGame.players.indexOf(user) + 1) % cardGame.players.size
                     val nextUser = cardGame.players[nextIndex]
+
+                    // TODO check end game!!
                     return if (cardGame.minusTokens[nextUser]!! > 0 || cardGame.plusTokens[nextUser]!! > 0) {
                         AwaitingUseTokens(cardGame, nextUser) // he can choose to use tokens
                     } else {
-                        // TODO Apply the effects of the roll
+                        cardGame.applyRoll(user)
                         AwatingPlay(cardGame, nextUser) // no tokens whatever
                     }
                 }
