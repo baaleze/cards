@@ -3,6 +3,7 @@ import { Game } from '../model/game';
 import { Router } from '@angular/router';
 import { SessionService } from '../session.service';
 import { WebsocketService } from '../websocket.service';
+import { CardGameInfo, Board } from '../model/cardgame';
 
 @Component({
   selector: 'app-game',
@@ -12,6 +13,8 @@ import { WebsocketService } from '../websocket.service';
 export class GameComponent implements OnInit {
 
   game: Game;
+  info: CardGameInfo;
+  board: Board;
 
   constructor(private websocket: WebsocketService, public session: SessionService,
     private router: Router) { }
@@ -46,8 +49,35 @@ export class GameComponent implements OnInit {
       }
     );
   }
-  refreshGame(data: any) {
-    throw new Error("Method not implemented.");
+
+  startGame() {
+    this.websocket.send({type:"START_GAME"});
+  }
+
+  playTile() {
+    // TODO
+    this.websocket.send({type:"PLAY_TILE", data: {
+      tileId: 0,
+      x: 0,
+      y: 0,
+      direction: 0
+    }});
+  }
+
+  useTokens() {
+    // TODO
+    this.websocket.send({type: "USE_TOKENS", data: {
+      nbMinusTokens: 0,
+      nbPlusTokens: 0
+    }});
+  }
+
+  refreshGame(data: CardGameInfo) {
+    this.info = data;
+    // resresh current player board
+    if (this.info.currentPlayer) {
+      this.board = this.info.boards.find(b => b.user.id === this.info.currentPlayer.id);
+    }
   }
 
 }

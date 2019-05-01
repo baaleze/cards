@@ -26,12 +26,15 @@ fun main(args: Array<String>) {
         server
     }.apply {
         enableStaticFiles("/ngcards")
+        exception(Exception::class.java) { e, ctx ->
+            e.printStackTrace()
+        }
         ws("/ws") { ws ->
             ws.onConnect { session ->
                 println("${session.host()} joined.")
             }
             ws.onClose { session, status, message ->
-                println("${session.host()} left.")
+                println("${session.host()} left. >($status) $message")
                 logout(session)
             }
             ws.onMessage { session, message ->
@@ -118,10 +121,11 @@ fun broadcastUserList(session: WsSession? = null) {
 }
 
 fun broadcastGameList(session: WsSession? = null) {
+    val message = JSONObject().put("type", "GAME_LIST").put("data", JSONArray(games.map { it.desc() }))
     if (session != null) {
-        session.send(JSONObject().put("type", "GAME_LIST").put("data", JSONArray(games)).toString())
+        session.send(message.toString())
     } else {
-        broadcastJson(JSONObject().put("type", "GAME_LIST").put("data", JSONArray(games)))
+        broadcastJson(message)
     }
 }
 

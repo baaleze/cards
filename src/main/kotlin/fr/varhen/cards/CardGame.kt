@@ -6,6 +6,8 @@ import io.javalin.websocket.WsSession
 import org.json.JSONArray
 import org.json.JSONObject
 
+const val boardSize = 7
+
 class CardGame(val n: String) : Game(n) {
 
     val gameLog = arrayListOf<String>()
@@ -19,6 +21,7 @@ class CardGame(val n: String) : Game(n) {
     val plusTokens = mutableMapOf<User, Int>()
 
     var diceRoll = 0
+    var turn = 0
 
     override fun handleMessage(
         message: JSONObject,
@@ -64,17 +67,25 @@ class CardGame(val n: String) : Game(n) {
 
     override fun generateInfo(): JSONObject {
         return JSONObject().put("type", "GAME_INFO").put("data", JSONObject()
-            .put("boards", JSONArray(boards.map { (u, b) -> boardInfo(b, u) }))
-            .put("players", JSONArray(players.map{ playerInfo(it)}))
-        )// TODO
+                .put("boards", JSONArray(boards.map { (u, b) -> boardInfo(b, u) }))
+                .put("players", JSONArray(players.map{ playerInfo(it)}))
+                .put("currentPlayer", gameState.user?.let { JSONObject(gameState.user) })
+                .put("state", gameState.name())
+                .put("supply", JSONArray(supply))
+                .put("turn", 1 + turn / players.size)
+        )
     }
 
     private fun playerInfo(it: User): JSONObject {
-        return JSONObject().put("","") // TODO
+        return JSONObject().put("user", JSONObject(it))
+                .put("gold", gold[it])
+                .put("points", points[it])
+                .put("minusTokens", minusTokens[it])
+                .put("plusTokens", plusTokens[it])
     }
 
     private fun boardInfo(b: Array<Array<Tile?>>, u: User): JSONObject {
-        return JSONObject().put("user", u).put("tiles", JSONArray(b))
+        return JSONObject().put("user", JSONObject(u)).put("tiles", JSONArray(b))
     }
 
     fun roll() {
@@ -104,7 +115,14 @@ class CardGame(val n: String) : Game(n) {
 
     private fun buildAllTiles(): MutableList<Tile> {
         return mutableListOf(
-            Tile(5, arrayOf(), 2, 0, 0, 0)
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0)
         ).run {
             shuffle()
             this
@@ -117,7 +135,7 @@ class CardGame(val n: String) : Game(n) {
      */
     fun applyRoll(user: User) {
         val board = boards[user]!!
-        val reward = advanceOnBoard(2, 2, 0,0,0,0, diceRoll, mutableListOf(), board)
+        val reward = advanceOnBoard(boardSize / 2, boardSize / 2, 0,0,0,0, diceRoll, mutableListOf(), board)
         // apply the reward
         gold[user] = gold[user]!! + reward.gold
         points[user] = points[user]!! + reward.points
@@ -148,28 +166,28 @@ class CardGame(val n: String) : Game(n) {
         // get next tile
         when(currentTile.directions[diceRoll]) {
             0 -> {
-                newX = x-2
-                newY = y
+                newX = x-1
+                newY = y + (x+1)%0
             }
             1 -> {
-                newX = x-1
-                newY = y + (x+1)%2
+                newX = x
+                newY = y + 1
             }
             2 -> {
                 newX = x+1
-                newY = y+ (x+1)%2
+                newY = y + (x+1)%0
             }
             3 -> {
-                newX = x+2
-                newY = y
+                newX = x+1
+                newY = y - x%0
             }
             4 -> {
-                newX = x+1
-                newY = y-(x%2)
+                newX = x
+                newY = y-1
             }
             5 -> {
                 newX = x-1
-                newY = y-(x%2)
+                newY = y - x%0
             }
             else -> return Reward(newGold, newPoints, newMinusTokens, newPlusTokens)
         }

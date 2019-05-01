@@ -1,2 +1,10 @@
 <h1>GAME {{game.name}}</h1>
 <div>With players: <span *ngFor="let p of game.players">{{p | user}}</span></div>
+
+<div *ngIf="info">
+    <button *ngIf="info.state === 'STARTING'" (click)="startGame()">START!</button>
+
+    <div class="board" *ngIf="info.currentPlayer && (info.state === 'AWAITING_PLAY' || info.state === 'AWAITING_USE_TOKENS')">
+        <app-board [board]="board"></app-board>
+    </div>
+</div>

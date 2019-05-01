@@ -1,6 +1,7 @@
 package fr.varhen
 
 import io.javalin.websocket.WsSession
+import org.json.JSONArray
 import org.json.JSONObject
 
 abstract class Game(val name: String) {
@@ -23,4 +24,7 @@ abstract class Game(val name: String) {
     )
 
     abstract fun generateInfo(): JSONObject
+    fun desc(): JSONObject {
+        return JSONObject().put("name", name).put("players", JSONArray(players))
+    }
 }
