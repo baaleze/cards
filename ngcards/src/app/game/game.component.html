@@ -4,7 +4,7 @@
     <button *ngIf="info.state === 'STARTING'" (click)="startGame()">START!</button>
 
     <div *ngIf="info.state !== 'STARTING'" class="diceroll">
-        <h1>DICE : {{info.diceRoll}}</h1>
+        <i [ngClass]="'fas fa-dice-' + a[info.diceRoll]"></i>
     </div>
 
     <div class="players" *ngIf="info.state !== 'STARTING'">
@@ -34,12 +34,12 @@
     <div class="supply container">
         <ng-container *ngFor="let tile of info.supply; let i = index" >
             <ol *ngIf="i%2 == 0" [class.even]="(i/2)%2 === 0" [class.odd]="(i/2)%2 === 1">
-                <li class='hex'>
+                <li class='hex' [class.selectable]="canAfford(tile.cost)">
                         <div class="tileContent">
                         <app-tile [tile]="tile" [showCost]="true"></app-tile>
                         </div>
                     </li>
-                <li class='hex' *ngIf="info.supply[i+1]">
+                <li class='hex' [class.selectable]="canAfford(tile.cost)" *ngIf="info.supply[i+1]">
                     <div class="tileContent">
                     <app-tile [tile]="info.supply[i+1]" [showCost]="true"></app-tile>
                     </div>

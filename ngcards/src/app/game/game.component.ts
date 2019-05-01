@@ -78,6 +78,11 @@ export class GameComponent implements OnInit {
     }});
   }
 
+  canAfford(cost: number): boolean {
+    return this.info.currentPlayer.id === this.session.getConnectedUser().id &&
+      this.info.players.find(p => p.user.id === this.info.currentPlayer.id).gold >= cost;
+  }
+
   refreshGame(data: CardGameInfo) {
     this.info = data;
     // resresh current player board
@@ -89,5 +94,27 @@ export class GameComponent implements OnInit {
       this.minus = 0;
     }
   }
+
+  a = [
+    'zero',
+    'one ',
+    'two ',
+    'three ',
+    'four ',
+    'five ',
+    'six ',
+    'seven ',
+    'eight ',
+    'nine ',
+    'ten ',
+    'eleven ',
+    'twelve ',
+    'thirteen ',
+    'fourteen ',
+    'fifteen ',
+    'sixteen ',
+    'seventeen ',
+    'eighteen ',
+    'nineteen '];
 
 }
