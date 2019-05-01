@@ -28,3 +28,42 @@
     top: 3em;
     left: 0em;
 }
+
+.cost {
+    position: absolute;
+    top: -1em;
+    left: -1em;
+    color: goldenrod;
+    border: 1px solid goldenrod;
+    border-radius: 25px;
+    text-align: center;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+}
+
+.gold {
+    position: absolute;
+    top: 2.2em;
+    left: 1.5em;
+    color: goldenrod;
+}
+
+.points {
+    position: absolute;
+    top: 2.2em;
+    left: 3.5em;
+    color: darkgreen;
+}
+.minusTokens {
+    position: absolute;
+    top: 3.7em;
+    left: 1.5em;
+    color: brown;
+}
+.plusTokens {
+    position: absolute;
+    top: 3.7em;
+    left: 3.5em;
+    color: darkslateblue;
+}

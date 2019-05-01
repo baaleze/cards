@@ -16,11 +16,12 @@ class AwaitingUseTokens(cardGame: CardGame, user: User) : GameState(cardGame, us
                     sendError("Illegal action $action", Error.ILLEGAL_ACTION, session)
                     this
                 } else {
-                    // valid! cosume tokens and modify diceroll (in allowed range)
-                    cardGame.plusTokens[user]!!.minus(action.nbPlusTokens)
-                    cardGame.minusTokens[user]!!.minus(action.nbMinusTokens)
+                    // valid! consume tokens and modify diceroll (in allowed range)
+                    cardGame.plusTokens[user!!] = cardGame.plusTokens[user]!! - action.nbPlusTokens
+                    cardGame.minusTokens[user] = cardGame.minusTokens[user]!! - action.nbMinusTokens
                     cardGame.diceRoll = Math.max(Math.min(cardGame.diceRoll + action.nbPlusTokens - action.nbMinusTokens, 6), 1)
-                    AwatingPlay(cardGame, user!!) // no tokens whatever
+                    cardGame.applyRoll(user)
+                    AwatingPlay(cardGame, user)
                 }
             }
             else -> {

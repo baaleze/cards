@@ -1,0 +1,29 @@
+.diceroll {
+    position: absolute;
+    top: 100px;
+    right: 300px;
+    border: 2px solid #a52a2a;
+    background-color: #a52a2a50;
+}
+.players {
+    height: 50px;
+    .player-info {
+        margin-right: 10px;
+        padding: 2px;
+        border: 2px solid gray;
+    }
+
+    .player-info.current-player {
+        border: 2px solid brown;
+    }
+}
+
+.board {
+    width: 900px;
+    float: left;
+}
+
+.supply {
+    width: 400px;
+    float: left;
+}

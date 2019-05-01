@@ -5,7 +5,17 @@ export class CardGameInfo {
     currentPlayer?: User;
     boards: Board[];
     supply: Tile[];
-    players: User[];
+    players: UserInfo[];
+    turn: number;
+    diceRoll: number;
+}
+
+export class UserInfo {
+    user: User;
+    gold: number;
+    points: number;
+    minusTokens: number;
+    plusTokens: number;
 }
 
 export class Board {

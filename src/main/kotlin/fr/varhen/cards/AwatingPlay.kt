@@ -20,25 +20,32 @@ class AwatingPlay(game: CardGame, user: User) : GameState(game, user) {
                 } else {
                     // valid! do it
                     cardGame.putTileOnPlayerBoard(user!!, action.tileId, action.x, action.y, action.direction)
-
-                    // Next Player new roll
-                    cardGame.roll()
-                    val nextIndex = (cardGame.players.indexOf(user) + 1) % cardGame.players.size
-                    val nextUser = cardGame.players[nextIndex]
-
-                    // TODO check end game!!
-                    return if (cardGame.minusTokens[nextUser]!! > 0 || cardGame.plusTokens[nextUser]!! > 0) {
-                        AwaitingUseTokens(cardGame, nextUser) // he can choose to use tokens
-                    } else {
-                        cardGame.applyRoll(user)
-                        AwatingPlay(cardGame, nextUser) // no tokens whatever
-                    }
+                    // next
+                    nextPlayer(user)
                 }
+            }
+            is Action.Pass -> {
+                nextPlayer(user!!)
             }
             else -> {
                 sendError("Illegal action $action from $this", Error.ILLEGAL_ACTION, session)
                 this
             }
+        }
+    }
+
+    fun nextPlayer(user: User): GameState {
+        // Next Player new roll
+        cardGame.roll()
+        val nextIndex = (cardGame.players.indexOf(user) + 1) % cardGame.players.size
+        val nextUser = cardGame.players[nextIndex]
+
+        // TODO check end game!!
+        return if (cardGame.minusTokens[nextUser]!! > 0 || cardGame.plusTokens[nextUser]!! > 0) {
+            AwaitingUseTokens(cardGame, nextUser) // he can choose to use tokens
+        } else {
+            cardGame.applyRoll(nextUser)
+            AwatingPlay(cardGame, nextUser) // no tokens whatever
         }
     }
 

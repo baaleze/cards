@@ -9,6 +9,7 @@ import { Tile } from '../model/cardgame';
 export class TileComponent implements OnInit {
 
   @Input() tile: Tile;
+  @Input() showCost = false;
 
   a = [
     'zero',

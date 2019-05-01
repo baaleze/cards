@@ -1,6 +1,7 @@
 package fr.varhen.cards
 
 import fr.varhen.Error
+import fr.varhen.User
 import fr.varhen.sendError
 import io.javalin.websocket.WsSession
 
@@ -24,11 +25,25 @@ class Starting(cardGame: CardGame) : GameState(cardGame, null) {
                     cardGame.plusTokens[it] = 0
                 }
 
+                // fill supply
+                repeat(10) {
+                    cardGame.allTiles.random().apply {
+                        cardGame.allTiles.remove(this)
+                        cardGame.supply.add(this)
+                    }
+                }
+
                 // start turns
                 cardGame.turn++
 
+                cardGame.started = true
+
+
                 // get random start user
-                AwatingPlay(cardGame, cardGame.players.random())
+                cardGame.roll()
+                val random = cardGame.players.random()
+                cardGame.applyRoll(random)
+                AwatingPlay(cardGame, random)
             }
             else -> {
                 sendError("Illegal action $action from $this", Error.ILLEGAL_ACTION, session)

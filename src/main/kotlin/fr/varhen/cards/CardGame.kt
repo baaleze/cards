@@ -51,6 +51,7 @@ class CardGame(val n: String) : Game(n) {
                             data.getInt("nbPlusTokens")
                         )
                     }
+                    "PASS" -> Action.Pass
                     else -> {
                         sendError(
                             "Illegal message for game ${message.getString("type")}",
@@ -73,6 +74,7 @@ class CardGame(val n: String) : Game(n) {
                 .put("state", gameState.name())
                 .put("supply", JSONArray(supply))
                 .put("turn", 1 + turn / players.size)
+                .put("diceRoll", diceRoll)
         )
     }
 
@@ -96,6 +98,10 @@ class CardGame(val n: String) : Game(n) {
         broadcastJson(JSONObject().put("type", "GAME_LOG").put("data", JSONArray(gameLog)), players)
     }
 
+    override fun join(player: User): Boolean {
+        return super.join(player) && gameState is Starting // only can join if not started yet
+    }
+
     fun putTileOnPlayerBoard(
         user: User,
         tileId: Int,
@@ -115,6 +121,24 @@ class CardGame(val n: String) : Game(n) {
 
     private fun buildAllTiles(): MutableList<Tile> {
         return mutableListOf(
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
+                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
                 Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
                 Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
                 Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
@@ -164,10 +188,10 @@ class CardGame(val n: String) : Game(n) {
         val newY: Int
 
         // get next tile
-        when(currentTile.directions[diceRoll]) {
+        when(currentTile.directions.indexOf(diceRoll-1)) {
             0 -> {
                 newX = x-1
-                newY = y + (x+1)%0
+                newY = y + (x+1)%2
             }
             1 -> {
                 newX = x
@@ -175,11 +199,11 @@ class CardGame(val n: String) : Game(n) {
             }
             2 -> {
                 newX = x+1
-                newY = y + (x+1)%0
+                newY = y + (x+1)%2
             }
             3 -> {
                 newX = x+1
-                newY = y - x%0
+                newY = y - x%2
             }
             4 -> {
                 newX = x
@@ -187,7 +211,7 @@ class CardGame(val n: String) : Game(n) {
             }
             5 -> {
                 newX = x-1
-                newY = y - x%0
+                newY = y - x%2
             }
             else -> return Reward(newGold, newPoints, newMinusTokens, newPlusTokens)
         }

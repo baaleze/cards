@@ -1,10 +1,50 @@
 <h1>GAME {{game.name}}</h1>
-<div>With players: <span *ngFor="let p of game.players">{{p | user}}</span></div>
 
 <div *ngIf="info">
     <button *ngIf="info.state === 'STARTING'" (click)="startGame()">START!</button>
 
+    <div *ngIf="info.state !== 'STARTING'" class="diceroll">
+        <h1>DICE : {{info.diceRoll}}</h1>
+    </div>
+
+    <div class="players" *ngIf="info.state !== 'STARTING'">
+        <span *ngFor="let p of info.players" class="player-info" [class.current-player]="info.currentPlayer.id === p.user.id">{{p.user | user}} : 
+            <span class="gold">{{p.gold}}<i class="fas fa-coins"></i></span>
+            <span class="points">{{p.points}}<i class="fas fa-star"></i></span>
+            <span class="minusTokens">{{p.minusTokens}}<i class="fas fa-minus-square"></i></span>
+            <span class="plusTokens">{{p.plusTokens}}<i class="fas fa-plus-square"></i></span>
+        </span>
+        <span class="player-info">TURN : {{info.turn}}</span>
+    </div>
+
+    <div class="action" *ngIf="info.state !== 'STARTING'">
+        <ng-container *ngIf="info.currentPlayer.id === session.getConnectedUser().id">
+            <div *ngIf="info.state === 'AWAITING_PLAY'">
+                CLICK ON TILE TO BUY OR <span class="pass" (click)="pass()">PASS</span>
+            </div>
+            <div *ngIf="info.state === 'AWAITING_USE_TOKENS'">
+                USE <input [(ngModel)]="minus" /> MINUS TOKENS AND <input [(ngModel)]="plus" /> PLUS TOKENS <button class="use-token-btn" (click)="useTokens()">OK</button>
+            </div>
+        </ng-container>
+    </div>
+
     <div class="board" *ngIf="info.currentPlayer && (info.state === 'AWAITING_PLAY' || info.state === 'AWAITING_USE_TOKENS')">
         <app-board [board]="board"></app-board>
+    </div>
+    <div class="supply container">
+        <ng-container *ngFor="let tile of info.supply; let i = index" >
+            <ol *ngIf="i%2 == 0" [class.even]="(i/2)%2 === 0" [class.odd]="(i/2)%2 === 1">
+                <li class='hex'>
+                        <div class="tileContent">
+                        <app-tile [tile]="tile" [showCost]="true"></app-tile>
+                        </div>
+                    </li>
+                <li class='hex' *ngIf="info.supply[i+1]">
+                    <div class="tileContent">
+                    <app-tile [tile]="info.supply[i+1]" [showCost]="true"></app-tile>
+                    </div>
+                </li>
+            </ol>
+        </ng-container>
     </div>
 </div>

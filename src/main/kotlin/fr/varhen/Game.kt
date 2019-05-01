@@ -5,10 +5,11 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 abstract class Game(val name: String) {
+    var started = false
     val playerLimit = 4
     val players = mutableListOf<User>()
 
-    fun join(player: User): Boolean {
+    open fun join(player: User): Boolean {
         return if (players.size < playerLimit) {
             players.add(player)
             true
@@ -25,6 +26,6 @@ abstract class Game(val name: String) {
 
     abstract fun generateInfo(): JSONObject
     fun desc(): JSONObject {
-        return JSONObject().put("name", name).put("players", JSONArray(players))
+        return JSONObject().put("name", name).put("players", JSONArray(players)).put("started", started)
     }
 }

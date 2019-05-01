@@ -55,6 +55,7 @@ fun main(args: Array<String>) {
 fun handleMessage(message: JSONObject, session: WsSession) {
     when(message.getString("type") ?: "NULL") {
         "NULL" -> sendError("Missing type in message! $message", Error.MISSING_MESSAGE_TYPE, session) // missing type!
+        "PING" -> session.send(JSONObject().put("type", "PONG").toString())
         "LOGIN" -> login(message.getString("message"), session)
         else -> {
             // check if logged in for all other actions

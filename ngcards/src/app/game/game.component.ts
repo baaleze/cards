@@ -15,6 +15,8 @@ export class GameComponent implements OnInit {
   game: Game;
   info: CardGameInfo;
   board: Board;
+  minus: number;
+  plus: number;
 
   constructor(private websocket: WebsocketService, public session: SessionService,
     private router: Router) { }
@@ -54,6 +56,10 @@ export class GameComponent implements OnInit {
     this.websocket.send({type:"START_GAME"});
   }
 
+  pass() {
+    this.websocket.send({type:"PASS"});
+  }
+
   playTile() {
     // TODO
     this.websocket.send({type:"PLAY_TILE", data: {
@@ -67,8 +73,8 @@ export class GameComponent implements OnInit {
   useTokens() {
     // TODO
     this.websocket.send({type: "USE_TOKENS", data: {
-      nbMinusTokens: 0,
-      nbPlusTokens: 0
+      nbMinusTokens: this.minus,
+      nbPlusTokens: this.plus
     }});
   }
 
@@ -77,6 +83,10 @@ export class GameComponent implements OnInit {
     // resresh current player board
     if (this.info.currentPlayer) {
       this.board = this.info.boards.find(b => b.user.id === this.info.currentPlayer.id);
+    }
+    if(this.info.state === 'AWAITING_USE_TOKENS') {
+      this.plus = 0;
+      this.minus = 0;
     }
   }
 

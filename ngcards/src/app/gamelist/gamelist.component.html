@@ -2,11 +2,11 @@
 <div id="games">
   <div class="game-tile" *ngFor="let game of games">
     {{ game.name }}
-    <button *ngIf="!playerInGame(game)"
+    <button *ngIf="!playerInGame(game) && !game.started"
       (click)="joinGame(game)">JOIN</button>
     <button *ngIf="playerInGame(game)"
       (click)="playGame(game)">PLAY</button>
-    <div>Players
+    <div>Players <span class="started" *ngIf="game.started">IN PROGRESS</span>
       <ul>
         <li *ngFor="let p of game.players">{{p.name}}</li>
       </ul>

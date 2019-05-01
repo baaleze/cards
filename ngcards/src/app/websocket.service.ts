@@ -1,7 +1,7 @@
 import { Injectable, EventEmitter } from '@angular/core';
 
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
-import { Subject } from 'rxjs';
+import { Subject, interval } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +12,16 @@ export class WebsocketService {
   connectionState: EventEmitter<boolean> = new EventEmitter();
   out$: Subject<Message>;
 
-  constructor() { }
+  constructor() {
+    // keep alive
+    interval(20000).subscribe(
+      next => {
+        if (this.socket$) {
+          this.socket$.next({type: 'PING'});
+        }
+      }
+    );
+  }
 
   getConnection$() {
       // return webSocket<Message>(`ws://${window.location.host}/ws`);
@@ -27,7 +36,9 @@ export class WebsocketService {
       this.socket$.subscribe(
         m => {
           console.log('WS IN', m);
-          this.out$.next(m);
+          if (m.type !== "PONG") {
+            this.out$.next(m);
+          }
         },
         error => this.handleConnectionError(error),
         () => {
