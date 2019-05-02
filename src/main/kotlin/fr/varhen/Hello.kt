@@ -15,12 +15,14 @@ val loggedSession = ConcurrentHashMap<WsSession, User>()
 val games = mutableListOf<Game>()
 
 fun main(args: Array<String>) {
+    val h = args.getOrElse(0){ "0.0.0.0" }
+    val p = args.getOrElse(1) { "8080" }.toInt()
     Javalin.create().server {
         val server = Server()
         server.apply {
             connectors = arrayOf(ServerConnector(this).apply {
-                host = "localhost"
-                port = 8080
+                host = h
+                port = p
             })
         }
         server
