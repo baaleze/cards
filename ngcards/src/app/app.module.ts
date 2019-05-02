@@ -8,7 +8,6 @@ import { AppComponent } from './app.component';
 import { GamelistComponent } from './gamelist/gamelist.component';
 import { GameComponent } from './game/game.component';
 import { UserPipe } from './user.pipe';
-import { BoardComponent } from './board/board.component';
 import { TileComponent } from './tile/tile.component';
 
 @NgModule({
@@ -17,7 +16,6 @@ import { TileComponent } from './tile/tile.component';
     GamelistComponent,
     GameComponent,
     UserPipe,
-    BoardComponent,
     TileComponent
   ],
   imports: [

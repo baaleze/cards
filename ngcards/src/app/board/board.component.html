@@ -1,9 +1,0 @@
-<div class="container" *ngIf="board">
-  <ol *ngFor="let line of board.tiles; let i = index" [class.even]="i % 2 === 0" [class.odd]="i % 2 === 1">
-      <li class='hex' *ngFor="let tile of line">
-        <div class="tileContent">
-          <app-tile [tile]="tile"></app-tile>
-        </div>
-      </li>
-  </ol>
-</div>

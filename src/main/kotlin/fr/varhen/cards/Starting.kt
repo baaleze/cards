@@ -17,7 +17,7 @@ class Starting(cardGame: CardGame) : GameState(cardGame, null) {
                         arrayOfNulls<Tile>(boardSize)
                     }
                     // start tile
-                    b[boardSize / 2][boardSize / 2] = Tile(0, arrayOf(0,1,2,3,4,5), 1, 1,1,1)
+                    b[boardSize / 2][boardSize / 2] = Tile(0, arrayOf(0,1,2,3,4,5), 1, 0,0,0)
                     cardGame.boards[it] = b
                     cardGame.gold[it] = 5 // starting gold
                     cardGame.points[it] = 0

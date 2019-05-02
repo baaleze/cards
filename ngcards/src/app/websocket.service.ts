@@ -24,8 +24,8 @@ export class WebsocketService {
   }
 
   getConnection$() {
-      // return webSocket<Message>(`ws://${window.location.host}/ws`);
-      return webSocket<Message>(`ws://localhost:8080/ws`);
+      return webSocket<Message>(`ws://${window.location.host}/ws`);
+      //return webSocket<Message>(`ws://localhost:8080/ws`);
   }
 
   connect(reconnect = false): Subject<Message> {

@@ -3,7 +3,8 @@ import { Game } from '../model/game';
 import { Router } from '@angular/router';
 import { SessionService } from '../session.service';
 import { WebsocketService } from '../websocket.service';
-import { CardGameInfo, Board } from '../model/cardgame';
+import { CardGameInfo, Board, Tile, UserInfo } from '../model/cardgame';
+import { User } from '../model/user';
 
 @Component({
   selector: 'app-game',
@@ -17,6 +18,11 @@ export class GameComponent implements OnInit {
   board: Board;
   minus: number;
   plus: number;
+  selected: Tile;
+  tileOver: [number,number] = [-1,-1];
+  chosenSpot: [number, number] = [-1,-1];
+  chosenDir = 0;
+  winner: User;
 
   constructor(private websocket: WebsocketService, public session: SessionService,
     private router: Router) { }
@@ -56,26 +62,58 @@ export class GameComponent implements OnInit {
     this.websocket.send({type:"START_GAME"});
   }
 
+  selectPosition(i: number, j: number) {
+    if (this.selected
+      && i !== this.board.tiles.length / 2 && j !== this.board.tiles.length / 2) {
+      this.chosenSpot = [i,j];
+    }
+  }
+
   pass() {
     this.websocket.send({type:"PASS"});
   }
 
   playTile() {
-    // TODO
     this.websocket.send({type:"PLAY_TILE", data: {
-      tileId: 0,
-      x: 0,
-      y: 0,
-      direction: 0
+      tileId: this.selected.id,
+      x: this.chosenSpot[0],
+      y: this.chosenSpot[1],
+      direction: this.selected.direction
     }});
+    this.cancel();
   }
 
   useTokens() {
-    // TODO
     this.websocket.send({type: "USE_TOKENS", data: {
       nbMinusTokens: this.minus,
       nbPlusTokens: this.plus
     }});
+  }
+
+  selectToBuy(tile: Tile) {
+    if (this.canAfford(tile.cost)) {
+      this.selected = new Tile();
+      this.selected.cost = tile.cost;
+      this.selected.direction = 0;
+      this.selected.directions = tile.directions;
+      this.selected.gold = tile.gold;
+      this.selected.minusTokens = tile.minusTokens;
+      this.selected.plusTokens = tile.plusTokens;
+      this.selected.points = tile.points;
+      this.selected.id = tile.id;
+    }
+  }
+
+  cancel() {
+    this.chosenSpot = [-1,-1];
+    this.chosenDir = 0;
+    this.selected = undefined;
+  }
+
+  rotate() {
+    if (this.selected) {
+      this.selected.direction = (this.selected.direction + 1) % 6;
+    }
   }
 
   canAfford(cost: number): boolean {
@@ -87,11 +125,20 @@ export class GameComponent implements OnInit {
     this.info = data;
     // resresh current player board
     if (this.info.currentPlayer) {
-      this.board = this.info.boards.find(b => b.user.id === this.info.currentPlayer.id);
+      this.board = this.info.boards.find(b => b.user.id === this.session.getConnectedUser().id);
     }
     if(this.info.state === 'AWAITING_USE_TOKENS') {
       this.plus = 0;
       this.minus = 0;
+    }
+    if (this.info.state === 'ENDED') {
+      let win = this.info.players[0];
+      this.info.players.forEach(p => {
+        if (p.points > win.points) {
+          win = p;
+        }
+      });
+      this.winner = win.user;
     }
   }
 

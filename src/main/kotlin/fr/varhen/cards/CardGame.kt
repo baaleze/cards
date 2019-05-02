@@ -1,12 +1,16 @@
 package fr.varhen.cards
 
+import com.opencsv.CSVParserBuilder
+import com.opencsv.CSVReaderBuilder
 import fr.varhen.*
 
 import io.javalin.websocket.WsSession
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.InputStreamReader
 
 const val boardSize = 7
+const val NB_TURNS = 20
 
 class CardGame(val n: String) : Game(n) {
 
@@ -120,37 +124,22 @@ class CardGame(val n: String) : Game(n) {
     }
 
     private fun buildAllTiles(): MutableList<Tile> {
-        return mutableListOf(
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0),
-                Tile(5, arrayOf(0,1,2,3,4,5), 2, 0, 0, 0)
-        ).run {
-            shuffle()
-            this
+
+        val csvReader = CSVReaderBuilder(InputStreamReader(CardGame::class.java.getResourceAsStream("/cards.csv")))
+                .withCSVParser(CSVParserBuilder().build())
+                .build()
+
+        // Read the rest
+        val tiles = mutableListOf<Tile>()
+        var line: Array<String>? = csvReader.readNext()
+        while (line != null) {
+            tiles.add(Tile(line[0].toInt(), line.slice(1..6).map { it.toInt() }.toTypedArray(),
+                    line[7].toInt(), line[8].toInt(), line[9].toInt(), line[10].toInt()))
+            line = csvReader.readNext()
         }
+        tiles.shuffle()
+
+        return tiles
     }
 
     /**
@@ -188,28 +177,28 @@ class CardGame(val n: String) : Game(n) {
         val newY: Int
 
         // get next tile
-        when(currentTile.directions.indexOf(diceRoll-1)) {
-            0 -> {
+        when((currentTile.directions.indexOf(diceRoll-1) + currentTile.direction) % 6) {
+            1 -> {
                 newX = x-1
                 newY = y + (x+1)%2
             }
-            1 -> {
+            2 -> {
                 newX = x
                 newY = y + 1
             }
-            2 -> {
+            3 -> {
                 newX = x+1
                 newY = y + (x+1)%2
             }
-            3 -> {
+            4 -> {
                 newX = x+1
                 newY = y - x%2
             }
-            4 -> {
+            5 -> {
                 newX = x
                 newY = y-1
             }
-            5 -> {
+            0 -> {
                 newX = x-1
                 newY = y - x%2
             }

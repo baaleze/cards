@@ -18,13 +18,56 @@
         border: 2px solid brown;
     }
 }
+.user {
+    font-size: 30px;
+    font-weight: bold;
+}
 
 .board {
     width: 900px;
     float: left;
+    
+    .cancel-rotate {
+        position: absolute;
+        top: 0em;
+        left: 6em;
+        z-index: 2;
+    }
+    .rotate{
+        position: absolute;
+        top: 0em;
+        left: 0em;
+        z-index: 2;
+    }
+    .valid {
+        color: green;
+        font-size: 40px;
+        position: absolute;
+        top: 0.7em;
+        left: 0.7em;
+        z-index: 3;
+        background-color: #0c23;
+        width: 50px;
+        height: 50px;
+        text-align: center;
+        border-radius: 30px;
+    }
 }
 
 .supply {
+    position: relative;
     width: 400px;
     float: left;
+    li.selected {
+        background-color: #ffe1be;
+    }
+    .cancel {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 40px;
+        width: 40px;
+        height: 40px;
+        z-index: 2;
+    }
 }

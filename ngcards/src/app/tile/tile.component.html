@@ -1,6 +1,6 @@
 <ng-container *ngIf="tile">
-  <ng-container *ngFor="let d of tile.directions">
-    <span *ngIf="d !== -1" class="fas" [ngClass]="'fa-dice-' + numberToText(d+1) + ' dir-' + (d+1)"></span>
+  <ng-container *ngFor="let d of actualDirs; let i = index">
+    <span *ngIf="d !== -1" class="fas" [ngClass]="'fa-dice-' + numberToText(d+1) + ' dir-' + (i+1)"></span>
   </ng-container>
     <span class="cost" *ngIf="showCost" >{{tile.cost}}<i class="fas fa-coins"></i></span>
     <span class="gold" *ngIf="tile.gold > 0" >{{tile.gold}}<i class="fas fa-coins"></i></span>
