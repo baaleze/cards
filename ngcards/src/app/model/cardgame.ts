@@ -8,6 +8,7 @@ export class CardGameInfo {
     players: UserInfo[];
     turn: number;
     diceRoll: number;
+    pathUsed: number[];
 }
 
 export class UserInfo {

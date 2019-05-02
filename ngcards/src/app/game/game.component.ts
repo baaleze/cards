@@ -23,6 +23,7 @@ export class GameComponent implements OnInit {
   chosenSpot: [number, number] = [-1,-1];
   chosenDir = 0;
   winner: User;
+  pathUsed: number[] = [];
 
   constructor(private websocket: WebsocketService, public session: SessionService,
     private router: Router) { }
@@ -121,11 +122,33 @@ export class GameComponent implements OnInit {
       this.info.players.find(p => p.user.id === this.info.currentPlayer.id).gold >= cost;
   }
 
+  moreToken(which: 'minus' | 'plus') {
+    const p = this.info.players.find(p => p.user.id === this.info.currentPlayer.id);
+    if (which === 'minus') {
+      this.minus = Math.min(p.minusTokens, this.minus+1);
+    } else {
+      this.plus = Math.min(p.plusTokens, this.plus+1);
+    }
+  }
+
+  lessToken(which: 'minus' | 'plus') {
+    if (which === 'minus') {
+      this.minus = Math.max(0, this.minus-1);
+    } else {
+      this.plus = Math.max(0, this.plus-1);
+    }
+  }
+
   refreshGame(data: CardGameInfo) {
     this.info = data;
     // resresh current player board
     if (this.info.currentPlayer) {
       this.board = this.info.boards.find(b => b.user.id === this.session.getConnectedUser().id);
+      if (this.info.currentPlayer.id === this.session.getConnectedUser().id) {
+        this.pathUsed = this.info.pathUsed;
+      } else {
+        this.pathUsed = [];
+      }
     }
     if(this.info.state === 'AWAITING_USE_TOKENS') {
       this.plus = 0;

@@ -24,6 +24,7 @@ class CardGame(val n: String) : Game(n) {
     val minusTokens = mutableMapOf<User, Int>()
     val plusTokens = mutableMapOf<User, Int>()
 
+    val pathUsed = mutableListOf<Int>()
     var diceRoll = 0
     var turn = 0
 
@@ -79,6 +80,7 @@ class CardGame(val n: String) : Game(n) {
                 .put("supply", JSONArray(supply))
                 .put("turn", 1 + turn / players.size)
                 .put("diceRoll", diceRoll)
+                .put("pathUsed", JSONArray(pathUsed))
         )
     }
 
@@ -148,6 +150,8 @@ class CardGame(val n: String) : Game(n) {
      */
     fun applyRoll(user: User) {
         val board = boards[user]!!
+        // clear path
+        pathUsed.clear()
         val reward = advanceOnBoard(boardSize / 2, boardSize / 2, 0,0,0,0, diceRoll, mutableListOf(), board)
         // apply the reward
         gold[user] = gold[user]!! + reward.gold
@@ -168,6 +172,7 @@ class CardGame(val n: String) : Game(n) {
     ): Reward {
         val currentTile = board[x][y]!!
         visitedTiles.add(currentTile)
+        pathUsed.add(currentTile.id)
         // get bonus on current tile
         var newGold = gold + currentTile.gold
         var newPoints = points + currentTile.points
