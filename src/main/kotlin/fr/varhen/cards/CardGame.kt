@@ -130,12 +130,13 @@ class CardGame(val n: String) : Game(n) {
         val csvReader = CSVReaderBuilder(InputStreamReader(CardGame::class.java.getResourceAsStream("/cards.csv")))
                 .withCSVParser(CSVParserBuilder().build())
                 .build()
+        csvReader.readNext() // header skip
 
         // Read the rest
         val tiles = mutableListOf<Tile>()
         var line: Array<String>? = csvReader.readNext()
         while (line != null) {
-            tiles.add(Tile(line[0].toInt(), line.slice(1..6).map { it.toInt() }.toTypedArray(),
+            tiles.add(Tile(line[0].toInt(), line.slice(1..6).map { it.toInt() - 1 }.toTypedArray(),
                     line[7].toInt(), line[8].toInt(), line[9].toInt(), line[10].toInt()))
             line = csvReader.readNext()
         }
