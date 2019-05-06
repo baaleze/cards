@@ -1,6 +1,7 @@
 package fr.varhen
 
 import fr.varhen.cards.CardGame
+import fr.varhen.dices.DiceGame
 import io.javalin.Javalin
 import io.javalin.websocket.WsSession
 import org.eclipse.jetty.server.Server
@@ -68,7 +69,7 @@ fun handleMessage(message: JSONObject, session: WsSession) {
                 val user = loggedSession[session]!!
                 when (message.getString("type")) {
                     "LOGOUT" -> logout(session)
-                    "CREATE_GAME" -> createGame(message.getString("message"), session, user)
+                    "CREATE_GAME" -> createGame(message.getString("message"), message.getJSONObject("data").getString("gameType"), session, user)
                     "GAME_LIST" -> broadcastGameList(session)
                     "GET_GAME_INFO" -> broadcastGameInfo(message.getString("message"), session)
                     "JOIN_GAME" -> join(message.getString("message"), session, user)
@@ -104,13 +105,17 @@ fun broadcastGameInfo(gameName: String?, session: WsSession? = null) {
     }
 }
 
-fun createGame(name: String?, session: WsSession, user: User) {
-    if (name == null) {
-        sendError("Missing game name", Error.MISSING_GAME_NAME, session)
-    } else {
-        val game = CardGame(name)
-        game.players.add(user)
-        games.add(game)
+fun createGame(name: String, type: String, session: WsSession, user: User) {
+    when(type) {
+        "CARD" -> CardGame(name)
+        "DICE" -> DiceGame(name)
+        else -> {
+            sendError("Incorrect game type", Error.JSON_INVALID, session)
+            null
+        }
+    }?.let {
+        it.players.add(user)
+        games.add(it)
         broadcastGameList()
     }
 }
