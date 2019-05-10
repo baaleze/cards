@@ -107,8 +107,8 @@ fun broadcastGameInfo(gameName: String?, session: WsSession? = null) {
 
 fun createGame(name: String, type: String, session: WsSession, user: User) {
     when(type) {
-        "CARD" -> CardGame(name)
-        "DICE" -> DiceGame(name)
+        "CARDS" -> CardGame(name)
+        "DICES" -> DiceGame(name)
         else -> {
             sendError("Incorrect game type", Error.JSON_INVALID, session)
             null
