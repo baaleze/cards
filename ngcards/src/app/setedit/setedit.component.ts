@@ -30,13 +30,21 @@ export class SeteditComponent implements OnInit {
     });
   }
 
-  delete(item) {
+  delete(item: object) {
     this.data.splice(this.data.indexOf(item), 1);
+  }
+
+  duplicate(item: object) {
+    const o = {};
+    this.headers.forEach(h => {
+      o[h] = item[h];
+    });
+    this.data.push(o);
   }
 
   newLine() {
     const o = {};
-    this.headers.forEach((h, j) => {
+    this.headers.forEach(h => {
       o[h] = undefined;
     });
     this.data.push(o);

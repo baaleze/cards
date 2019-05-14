@@ -31,5 +31,6 @@
     </div>
 </div>
 <div id="set-edit" *ngIf="editingSet">
+  <button (click)="editingSet = undefined"><i class="fas window-close"></i></button>
     <app-setedit [setName]="editingSet.setName" [setList]="editingSet.setList" (save)="saveSet($event)"></app-setedit>
 </div>

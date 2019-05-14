@@ -18,6 +18,7 @@
           <button class="save-btn" (click)="saveSet()"><i class="fas fa-check"></i></button>
         </ng-template>
       <ng-template #dataTableCell let-item="item">
+          <button (click)="duplicate(item)"><i class="fas fa-clone"></i></button>
           <button (click)="delete(item)"><i class="fas fa-times"></i></button>
         </ng-template>
     </data-table-column>
