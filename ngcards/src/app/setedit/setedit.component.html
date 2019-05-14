@@ -1,9 +1,11 @@
 <div>
+  <h4>{{setName}}</h4><button (click)="emitCancel()"><i class="fas fa-window-close"></i></button>
    <data-table id="my-table"
     [title]="setName"
+    [showTitle]="false"
     [items]="data"
     [pagination]="false"
-    >
+    > 
     <data-table-column *ngFor="let h of headers"
       [property]="h"
       [header]="h">
@@ -14,12 +16,12 @@
     <data-table-column
       [header]="'X'">
       <ng-template #dataTableHeader let-item="item">
-          <button class="plus-btn" (click)="newLine()"><i class="fas fa-plus"></i></button>
-          <button class="save-btn" (click)="saveSet()"><i class="fas fa-check"></i></button>
+            <button (click)="newLine()"><i class="fas fa-plus"></i></button>
+            <button (click)="saveSet()"><i class="fas fa-check"></i></button>
         </ng-template>
       <ng-template #dataTableCell let-item="item">
-          <button (click)="duplicate(item)"><i class="fas fa-clone"></i></button>
-          <button (click)="delete(item)"><i class="fas fa-times"></i></button>
+            <button (click)="duplicate(item)"><i class="fas fa-clone"></i></button>
+            <button (click)="delete(item)"><i class="fas fa-times"></i></button>
         </ng-template>
     </data-table-column>
   </data-table>

@@ -10,6 +10,7 @@ export class SeteditComponent implements OnInit {
   @Input() setName: string;
   @Input() setList: string[][];
   @Output() save = new EventEmitter<string[][]>();
+  @Output() cancel = new EventEmitter<void>();
   headers: string[] = [];
   data: object[] = [];
 
@@ -28,6 +29,10 @@ export class SeteditComponent implements OnInit {
         this.data.push(o);
       }
     });
+  }
+
+  emitCancel() {
+    this.cancel.emit();
   }
 
   delete(item: object) {
