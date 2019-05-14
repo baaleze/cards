@@ -19,8 +19,8 @@ export class GameComponent implements OnInit {
   minus: number;
   plus: number;
   selected: Tile;
-  tileOver: [number,number] = [-1,-1];
-  chosenSpot: [number, number] = [-1,-1];
+  tileOver: [number, number] = [-1, -1];
+  chosenSpot: [number, number] = [-1, -1];
   chosenDir = 0;
   winner: User;
   pathUsed: number[] = [];
@@ -32,14 +32,14 @@ export class GameComponent implements OnInit {
     this.game = this.session.getCurrentGame();
     if (!this.game) {
       // no game selected
-      this.router.navigateByUrl('/games');
+      this.router.navigateByUrl('/');
     }
     // check if I can be here
     const user = this.session.getConnectedUser();
     if (!user || !this.game.players.find(u => u.name === user.name)) {
       // not in the game !
       this.session.setCurrentGame(undefined);
-      this.router.navigateByUrl('/games');
+      this.router.navigateByUrl('/');
     } else {
       // subscribe to socket
       this.subscribe();

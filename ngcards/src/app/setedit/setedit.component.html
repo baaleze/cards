@@ -1,0 +1,25 @@
+<div>
+   <data-table id="my-table"
+    [title]="setName"
+    [items]="data"
+    [pagination]="false"
+    >
+    <data-table-column *ngFor="let h of headers"
+      [property]="h"
+      [header]="h">
+      <ng-template #dataTableCell let-item="item">
+          <input type="number" [(ngModel)]="item[h]" class="form-control input-sm" style="width: 75px"/>
+        </ng-template>
+    </data-table-column>
+    <data-table-column
+      [header]="'X'">
+      <ng-template #dataTableHeader let-item="item">
+          <button class="plus-btn" (click)="newLine()"><i class="fas fa-plus"></i></button>
+          <button class="save-btn" (click)="saveSet()"><i class="fas fa-check"></i></button>
+        </ng-template>
+      <ng-template #dataTableCell let-item="item">
+          <button (click)="delete(item)"><i class="fas fa-times"></i></button>
+        </ng-template>
+    </data-table-column>
+  </data-table>
+  </div>

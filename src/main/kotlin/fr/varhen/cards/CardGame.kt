@@ -7,12 +7,13 @@ import fr.varhen.*
 import io.javalin.websocket.WsSession
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.FileInputStream
 import java.io.InputStreamReader
 
 const val boardSize = 7
 const val NB_TURNS = 20
 
-class CardGame(val n: String) : Game(n) {
+class CardGame(n: String, val set: String? = "default") : Game(n) {
 
     val gameLog = arrayListOf<String>()
     var gameState: GameState = Starting(this)
@@ -126,8 +127,8 @@ class CardGame(val n: String) : Game(n) {
     }
 
     private fun buildAllTiles(): MutableList<Tile> {
-
-        val csvReader = CSVReaderBuilder(InputStreamReader(CardGame::class.java.getResourceAsStream("/cards.csv")))
+        println(set)
+        val csvReader = CSVReaderBuilder(InputStreamReader(FileInputStream("./sets/$set.csv")))
                 .withCSVParser(CSVParserBuilder().build())
                 .build()
         csvReader.readNext() // header skip

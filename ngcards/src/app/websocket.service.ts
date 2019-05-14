@@ -25,7 +25,7 @@ export class WebsocketService {
 
   getConnection$() {
       return webSocket<Message>(`ws://${window.location.host}/ws`);
-      //return webSocket<Message>(`ws://localhost:8080/ws`);
+      // return webSocket<Message>(`ws://localhost:7070/ws`);
   }
 
   connect(reconnect = false): Subject<Message> {
@@ -36,7 +36,7 @@ export class WebsocketService {
       this.socket$.subscribe(
         m => {
           console.log('WS IN', m);
-          if (m.type !== "PONG") {
+          if (m.type !== 'PONG') {
             this.out$.next(m);
           }
         },

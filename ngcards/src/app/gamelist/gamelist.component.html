@@ -14,6 +14,22 @@
   </div>
   <div class="game-tile">
     <input [(ngModel)]="gameTitle" />
+    <select [(ngModel)]="gameSet">
+      <option *ngFor="let s of validSets" [value]="s.setName">{{s.setName}}</option>
+    </select>
     <button (click)="createGame()" [disabled]="gameTitle === ''">NEW GAME</button>
     </div>
+</div>
+<div id="sets" *ngIf="!editingSet">
+  <div class="set-tile" *ngFor="let set of sets">
+    <p>SET {{set.setName}} <em *ngIf="set.setList.length < 30">INVALID</em></p>
+    <p><button (click)="editingSet = set">EDIT</button></p>
+  </div>
+  <div class="set-tile" >
+      <input [(ngModel)]="newSetName">
+      <p><button (click)="editNewSet()" [disabled]="newSetName === ''">NEW SET</button></p>
+    </div>
+</div>
+<div id="set-edit" *ngIf="editingSet">
+    <app-setedit [setName]="editingSet.setName" [setList]="editingSet.setList" (save)="saveSet($event)"></app-setedit>
 </div>

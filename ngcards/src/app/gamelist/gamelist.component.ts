@@ -3,6 +3,9 @@ import { Game } from '../model/game';
 import { WebsocketService } from '../websocket.service';
 import { SessionService } from '../session.service';
 import { Router } from '@angular/router';
+import { Set } from '../model/set';
+
+const MIN_SET_SIZE = 30;
 
 @Component({
   selector: 'app-gamelist',
@@ -13,7 +16,12 @@ export class GamelistComponent implements OnInit {
 
   games: Game[];
   gameTitle = '';
+  gameSet = 'default';
   joining: string;
+  sets: Set[];
+  validSets: Set[];
+  editingSet: Set;
+  newSetName = '';
 
   constructor(private websocket: WebsocketService, public session: SessionService,
     private router: Router) { }
@@ -32,6 +40,13 @@ export class GamelistComponent implements OnInit {
               this.playGame(game);
             }
           }
+        } else if (m.type === 'SET_LIST') {
+          // set list is in data
+          this.sets = m.data;
+          // valid sets
+          this.validSets = this.sets.filter(s => s.setList.length > MIN_SET_SIZE);
+        } else if (m.type === 'OK_SAVED') {
+          this.editingSet = undefined;
         } else if (m.type === 'ERROR' && m.errorCode === 'GAME_FULL') {
           alert('Game is full!!');
           this.joining = undefined;
@@ -42,7 +57,7 @@ export class GamelistComponent implements OnInit {
 
   createGame() {
     if (this.gameTitle !== '') {
-      this.websocket.send({type: 'CREATE_GAME', message: this.gameTitle, data: { gameType: 'CARDS'} });
+      this.websocket.send({type: 'CREATE_GAME', message: this.gameTitle, data: { gameType: 'CARDS', set: this.gameSet} });
       this.gameTitle = '';
     }
   }
@@ -64,6 +79,22 @@ export class GamelistComponent implements OnInit {
     // go to game page!
     this.session.setCurrentGame(game);
     this.router.navigateByUrl(`/game/${game.name}`);
+  }
+
+  editNewSet() {
+    if (this.newSetName !== '') {
+      this.editingSet = {
+        setName: this.newSetName,
+        setList: [this.sets[0].setList[0]]
+      };
+    }
+  }
+
+  saveSet(set: string[][]) {
+    this.websocket.send({type: 'CREATE_SET', data: {
+      setName: this.editingSet.setName,
+      setList: set
+    }});
   }
 
 }

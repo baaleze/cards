@@ -1,7 +1,11 @@
 package fr.varhen
 
+import com.opencsv.CSVParserBuilder
+import com.opencsv.CSVReaderBuilder
 import fr.varhen.cards.CardGame
+import fr.varhen.cards.Tile
 import fr.varhen.dices.DiceGame
+import io.javalin.Handler
 import io.javalin.Javalin
 import io.javalin.websocket.WsSession
 import org.eclipse.jetty.server.Server
@@ -9,15 +13,20 @@ import org.eclipse.jetty.server.ServerConnector
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.File
+import java.io.FileInputStream
+import java.io.InputStreamReader
 import java.util.concurrent.ConcurrentHashMap
 
 val users = mutableListOf<User>()
 val loggedSession = ConcurrentHashMap<WsSession, User>()
 val games = mutableListOf<Game>()
+var setList = buildSetList()
 
 fun main(args: Array<String>) {
     val h = args.getOrElse(0){ "0.0.0.0" }
     val p = args.getOrElse(1) { "8080" }.toInt()
+
     Javalin.create().server {
         val server = Server()
         server.apply {
@@ -55,6 +64,12 @@ fun main(args: Array<String>) {
     }.start()
 }
 
+fun buildSetList(): List<String> {
+    return File("./sets").listFiles().map {
+        it.nameWithoutExtension
+    }
+}
+
 fun handleMessage(message: JSONObject, session: WsSession) {
     when(message.getString("type") ?: "NULL") {
         "NULL" -> sendError("Missing type in message! $message", Error.MISSING_MESSAGE_TYPE, session) // missing type!
@@ -68,8 +83,19 @@ fun handleMessage(message: JSONObject, session: WsSession) {
             } else {
                 val user = loggedSession[session]!!
                 when (message.getString("type")) {
+                    "SET_LIST" -> broadcastSetList(session)
+                    "CREATE_SET" -> createSet(
+                        message.getJSONObject("data").getString("setName"),
+                        message.getJSONObject("data").getJSONArray("setList"),
+                        session)
                     "LOGOUT" -> logout(session)
-                    "CREATE_GAME" -> createGame(message.getString("message"), message.getJSONObject("data").getString("gameType"), session, user)
+                    "CREATE_GAME" -> createGame(
+                        message.getString("message"),
+                        message.getJSONObject("data").getString("gameType"),
+                        session,
+                        user,
+                        message.getJSONObject("data").getString("set")
+                    )
                     "GAME_LIST" -> broadcastGameList(session)
                     "GET_GAME_INFO" -> broadcastGameInfo(message.getString("message"), session)
                     "JOIN_GAME" -> join(message.getString("message"), session, user)
@@ -82,6 +108,51 @@ fun handleMessage(message: JSONObject, session: WsSession) {
 
         }
     }
+}
+
+fun createSet(setName: String, jsonArray: JSONArray?, session: WsSession) {
+    if (jsonArray != null && jsonArray.length() > 0) {
+        // write set into csv file, it is given in the form of an array of array
+        File("./sets/$setName.csv").printWriter().use { out ->
+            jsonArray.forEach {
+                if (it is JSONArray) {
+                    out.println(it.toList().map { i -> i.toString() }.joinToString(","))
+                }
+            }
+        }
+
+        // change set list
+        if (!setList.contains(setName)) {
+            setList = setList.plusElement(setName)
+        }
+
+        // broadcast it
+        broadcastSetList(session)
+        broadcastChat("$setName successfully edited!")
+        session.send(JSONObject().put("type", "OK_SAVED").toString())
+    } else {
+        sendError("Invalid set array", Error.JSON_INVALID, session)
+    }
+}
+
+fun readSet(setName: String): JSONArray {
+    val csvReader = CSVReaderBuilder(InputStreamReader(FileInputStream("./sets/$setName.csv")))
+        .withCSVParser(CSVParserBuilder().build())
+        .build()
+    return JSONArray().also {
+        var line: Array<String>? = csvReader.readNext()
+        while (line != null) {
+            it.put(line)
+            line = csvReader.readNext()
+        }
+    }
+
+}
+
+fun broadcastSetList(session: WsSession) {
+    session.send(JSONObject().put("type", "SET_LIST").put("data", JSONArray(setList.map {
+        JSONObject().put("setName", it).put("setList", readSet(it))
+    })).toString())
 }
 
 fun broadcastGameInfo(gameName: String?, session: WsSession? = null) {
@@ -105,9 +176,9 @@ fun broadcastGameInfo(gameName: String?, session: WsSession? = null) {
     }
 }
 
-fun createGame(name: String, type: String, session: WsSession, user: User) {
+fun createGame(name: String, type: String, session: WsSession, user: User, set: String?) {
     when(type) {
-        "CARDS" -> CardGame(name)
+        "CARDS" -> CardGame(name, set)
         "DICES" -> DiceGame(name)
         else -> {
             sendError("Incorrect game type", Error.JSON_INVALID, session)
@@ -117,6 +188,7 @@ fun createGame(name: String, type: String, session: WsSession, user: User) {
         it.players.add(user)
         games.add(it)
         broadcastGameList()
+        broadcastChat("${user.name} created new game $name [$set]")
     }
 }
 
@@ -174,6 +246,7 @@ fun login(name: String, session: WsSession) {
     broadcastChat("$name has logged in")
     broadcastUserList()
     broadcastGameList(session)
+    broadcastSetList(session)
 }
 
 fun logout(session: WsSession) {

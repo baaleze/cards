@@ -76,7 +76,7 @@ class DiceGame(val n: String) : Game(n) {
 
     private fun buildAllDices(): MutableList<Dice> {
 
-        val csvReader = CSVReaderBuilder(InputStreamReader(DiceGame::class.java.getResourceAsStream("/cards.csv")))
+        val csvReader = CSVReaderBuilder(InputStreamReader(DiceGame::class.java.getResourceAsStream("/default.csv")))
             .withCSVParser(CSVParserBuilder().build())
             .build()
         csvReader.readNext() // header skip
