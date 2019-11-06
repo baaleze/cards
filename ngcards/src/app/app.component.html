@@ -1,3 +1,8 @@
+<select class="theme-change" [(ngModel)]="currentTheme" (change)="toggleTheme()">
+  <option [value]="'DARK'" >DARK</option>
+  <option [value]="'LIGHT'" >LIGHT</option>
+</select>
+
 <div id="chat">
   <div id="connection" *ngIf="!session.getConnectedUser()" >
     <label>Input Name:</label>

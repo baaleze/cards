@@ -3,6 +3,7 @@ import { WebsocketService, Message } from './websocket.service';
 import { Subject, Subscription } from 'rxjs';
 import { SessionService } from './session.service';
 import { User } from './model/user';
+import { ThemeService } from './theme.service';
 
 @Component({
   selector: 'app-root',
@@ -17,8 +18,10 @@ export class AppComponent implements OnInit {
   connected = false;
   connection: Subscription;
   userList: User[] = [];
+  currentTheme: 'DARK' | 'LIGHT' = 'LIGHT';
 
-  constructor(private websocket: WebsocketService, public session: SessionService) {}
+  constructor(private websocket: WebsocketService, public session: SessionService,
+    private theme: ThemeService) {}
 
   ngOnInit() {
     this.websocket.connectionState.subscribe(
@@ -34,6 +37,11 @@ export class AppComponent implements OnInit {
         this.connected = connectionState;
       }
     );
+    this.theme.toggleTheme(this.currentTheme);
+  }
+
+  toggleTheme() {
+    this.theme.toggleTheme(this.currentTheme);
   }
 
   login() {

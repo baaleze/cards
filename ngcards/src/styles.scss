@@ -1,6 +1,7 @@
 /* You can add global styles to this file, and also import other style files */
 html {
     font-family: Arial, Helvetica, sans-serif;
+    background-color: var(--empty);
 }
 $hex-size: 4em; // Only change size here. Best used with sizes from 5em - 10em.
 
@@ -8,7 +9,7 @@ $hex-size: 4em; // Only change size here. Best used with sizes from 5em - 10em.
 .container {
   width: 100%; 
   line-height: 1.3;
-  border: 1px solid #255;
+  border: 1px solid var(--shadow);
   ol.even {
     position: relative;
     left: ($hex-size / 1.1);
@@ -23,7 +24,7 @@ $hex-size: 4em; // Only change size here. Best used with sizes from 5em - 10em.
     margin: 0.7em auto;
     width: $hex-size; height: ($hex-size * 1.7);
     border-radius: 1em/.5em;
-    background: #eeeeee;
+    background: var(--backgroundDefault);
     transform: rotate(-90deg);
     display: inline-block;
     margin-right: ($hex-size / 1.30);
@@ -43,19 +44,19 @@ $hex-size: 4em; // Only change size here. Best used with sizes from 5em - 10em.
     transform: rotate(-60deg);
   }
   .hex.selectable:hover {
-    background: rgb(229, 213, 255);
+    background: var(--shadow);
     cursor: pointer;
   }
   .hex.onpath {
-    border: 1px solid #dd4600;
+    border: 1px solid var(--accent);
   }
   .hex.onpath:before {
-    border-top: 1px solid #dd4600;
-    border-bottom: 1px solid #dd4600;
+    border-top: 1px solid var(--accent);
+    border-bottom: 1px solid var(--accent);
   }
   .hex.onpath:after {
-    border-top: 1px solid #dd4600;
-    border-bottom: 1px solid #dd4600;
+    border-top: 1px solid var(--accent);
+    border-bottom: 1px solid var(--accent);
   }
   .tileContent {
     position: absolute;
@@ -68,17 +69,17 @@ $hex-size: 4em; // Only change size here. Best used with sizes from 5em - 10em.
 }
 
 .gold {
-    color: goldenrod;
+    color: var(--warn);
 }
 
 .points {
-    color: darkgreen;
+    color: var(--success);
 }
 .minusTokens {
-    color: brown;
+    color: var(--primary);
 }
 .plusTokens {
-    color: darkslateblue;
+    color: var(--error);
 }
 
 
@@ -86,7 +87,7 @@ $hex-size: 4em; // Only change size here. Best used with sizes from 5em - 10em.
 #my-table {
   .table {
     thead tr:nth-child(1) th{
-      background: white;
+      background: var(--empty);
       position: sticky;
       top: 0;
       z-index: 10;
