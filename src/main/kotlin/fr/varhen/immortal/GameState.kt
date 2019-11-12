@@ -8,8 +8,8 @@ abstract class GameState(val game: ImmortalGame, val user: User?) {
     fun name(): String? {
         return when(this) {
             is Starting -> "STARTING"
-            is AwatingPlay -> "AWAITING_PLAY"
-            is AwaitingUseTokens -> "AWAITING_USE_TOKENS"
+            is AwaitingPlay -> "AWAITING_PLAY"
+            is AwaitingDraft -> "AWAITING_DRAFT"
             is Ended -> "ENDED"
             else -> "NONE"
         }

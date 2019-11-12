@@ -1,24 +1,31 @@
 package fr.varhen.immortal
 
-import com.opencsv.CSVParserBuilder
-import com.opencsv.CSVReaderBuilder
 import fr.varhen.Game
 import fr.varhen.User
 import fr.varhen.broadcastJson
+import fr.varhen.sendError
+import fr.varhen.Error
 
 import io.javalin.websocket.WsSession
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.FileInputStream
-import java.io.InputStreamReader
 
 class ImmortalGame(n: String, val set: String? = "default") : Game(n) {
 
     val gameLog = arrayListOf<String>()
     var gameState: GameState = Starting(this)
-    val supply = mutableListOf<Card>()
-    val allCards = Card.buildAllCards()
+    val allCards = buildAllCards(2)
+    val discard = mutableListOf<Card>()
     val commerce = buildCommerce()
+    val discardCommerce = mutableListOf<Commerce>()
+
+    val wonders = mutableListOf<Card>()
+    var remainingDiamonds = 5
+
+    val buildings = mutableMapOf<User, MutableList<Card>>()
+    val heroes = mutableMapOf<User, MutableList<Card>>()
+    val hands = mutableMapOf<User, MutableList<Card>>()
+
     val gold = mutableMapOf<User, Int>()
     val points = mutableMapOf<User, Array<Int>>()
     val chaos = mutableMapOf<User, Int>()
@@ -27,13 +34,14 @@ class ImmortalGame(n: String, val set: String? = "default") : Game(n) {
     val wonder = mutableMapOf<User, Int>()
     val supremacy = mutableMapOf<User, Int>()
     val pointTokens = mutableMapOf<User, Int>()
+    val diamonds = mutableMapOf<User, Int>()
 
     // current turn variables
-    val currentUserWonderUses = 0;
-    val currentUserCardChoices = mutableListOf<Card>();
-    val currentUserTokenChoice = mutableListOf<Commerce>();
+    val currentUserWonderUses = 0
 
-    var turn = 0
+    val round = 0
+    val drafting = true
+    val hasDrafted = mutableMapOf<User, Boolean>()
 
     override fun handleMessage(
         message: JSONObject,
@@ -47,20 +55,20 @@ class ImmortalGame(n: String, val set: String? = "default") : Game(n) {
             gameState = gameState.nextState(
                 when (message.getString("type")) {
                     "START_GAME" -> Action.Start
-                    "PLAY_TILE" -> {
+                    "PLAY_CARD" -> {
                         val data = message.getJSONObject("data")
-                        Action.PlayTile(
-                            data.getInt("tileId"),
-                            data.getInt("x"),
-                            data.getInt("y"),
-                            data.getInt("direction")
+                        Action.PlayCard(
+                            data.getInt("cardId"),
+                            data.getBoolean("useForGold"),
+                            data.getString("additionalArgs")
                         )
                     }
-                    "USE_TOKENS" -> {
+                    "USE_ACTION" -> {
                         val data = message.getJSONObject("data")
-                        Action.UseTokens(
-                            data.getInt("nbMinusTokens"),
-                            data.getInt("nbPlusTokens")
+                        // TODO add additional info like target and other things
+                        Action.UseAction(
+                            data.getInt("cardId"),
+                            data.getString("additionalArgs")
                         )
                     }
                     "PASS" -> Action.Pass
@@ -78,25 +86,118 @@ class ImmortalGame(n: String, val set: String? = "default") : Game(n) {
         }
     }
 
+    fun hasBuildings(user: User): Boolean {
+        return buildings[user]?.isNotEmpty() ?: false
+    }
+
+    fun hasOnlyThisCard(user: User, name: String, hero: Boolean): Boolean {
+        return if (hero) {
+            heroes[user]?.all { it.name == name } ?: false
+        } else {
+            buildings[user]?.all { it.name == name } ?: false
+        }
+    }
+
+    fun getCulture(id: Int): Int {
+        return findCard(id)?.culture ?: 0
+    }
+
+    fun destroy(id: Int, user: User) {
+        // get card
+        var card = findCard(id)
+        if (card != null) {
+            // remove from board
+            buildings[user]?.removeIf { it.id == id }
+            heroes[user]?.removeIf { it.id == id }
+            // put in discard
+            discard.add(card)
+        }
+    }
+
+    fun addSupremacy(user: User) {
+        supremacy[user]?.plus(1)
+    }
+
+    fun addDiamond(user: User) {
+        if (remainingDiamonds > 0) {
+            diamonds[user]?.plus(1)
+            remainingDiamonds--
+        }
+    }
+
+    fun findCard(id: Int): Card? {
+        for ((u,cards) in buildings) {
+            for (c in cards) {
+                if (c.id == id) {
+                    return c
+                }
+            }
+        }
+        for ((u,cards) in heroes) {
+            for (c in cards) {
+                if (c.id == id) {
+                    return c
+                }
+            }
+        }
+        for (c in wonders) {
+            if (c.id == id) {
+                return c
+            }
+        }
+        for (c in discard) {
+            if (c.id == id) {
+                return c
+            }
+        }
+        return null
+    }
+
     override fun generateInfo(): JSONObject {
         return JSONObject().put("type", "GAME_INFO").put("data", JSONObject()
-                .put("boards", JSONArray(boards.map { (u, b) -> boardInfo(b, u) }))
-                .put("players", JSONArray(players.map{ playerInfo(it)}))
-                .put("currentPlayer", gameState.user?.let { JSONObject(gameState.user) })
-                .put("state", gameState.name())
-                .put("supply", JSONArray(supply))
-                .put("turn", 1 + turn / players.size)
-                .put("diceRoll", diceRoll)
-                .put("pathUsed", JSONArray(pathUsed))
+            .put("players", JSONArray(players.map{ playerInfo(it)}))
+            .put("currentPlayer", gameState.user?.let { JSONObject(gameState.user) })
+            .put("state", gameState.name())
+            .put("allCards", cardListInfo(allCards))
+            .put("discard", cardListInfo(discard))
+            .put("commerce", JSONArray(commerce))
+            .put("discardCommerce", JSONArray(discardCommerce))
+            .put("round", round)
+            .put("currentWonderUse", currentUserWonderUses)
+            .put("drafting", drafting)
         )
+    }
+
+    private fun mapInfo(map: MutableMap<User, MutableList<Card>>): JSONObject {
+        with(JSONObject()) {
+            for ((user, cards) in map) {
+                this.put(user.id.toString(), cardListInfo(cards))
+            }
+            return this
+        }
+    }
+
+    private fun cardListInfo(cardList: MutableList<Card>?): JSONArray {
+        return if (cardList == null) {
+            JSONArray()
+        } else {
+            JSONArray(cardList.map { it.id })
+        }
     }
 
     private fun playerInfo(it: User): JSONObject {
         return JSONObject().put("user", JSONObject(it))
-                .put("gold", gold[it])
-                .put("points", points[it])
-                .put("minusTokens", minusTokens[it])
-                .put("plusTokens", plusTokens[it])
+            .put("gold", gold[it])
+            .put("hand", cardListInfo(hands[it]))
+            .put("buildings", cardListInfo(buildings[it]))
+            .put("heroes", cardListInfo(heroes[it]))
+            .put("chaos", chaos[it])
+            .put("science", science[it])
+            .put("war", war[it])
+            .put("wonder", wonder[it])
+            .put("supremacy", supremacy[it])
+            .put("pointTokens", pointTokens[it])
+            .put("diamonds", diamonds[it])
     }
 
     fun broadcastGameLog() {
@@ -107,111 +208,11 @@ class ImmortalGame(n: String, val set: String? = "default") : Game(n) {
         return super.join(player) && gameState is Starting // only can join if not started yet
     }
 
-    fun putTileOnPlayerBoard(
-        user: User,
-        tileId: Int,
-        x: Int,
-        y: Int,
-        direction: Int
-    ) {
-        val tile = supply.find { it.id == tileId }?.let {
-            it.direction = direction
-            supply.remove(it)
-            allCards.remove(it)
-            supply.add(allCards.random())
-            boards.getValue(user)[x][y] = it
-            gold[user] = gold.getValue(user) - it.cost
-        }
-    }
-
     /**
-     * Applies the dice roll to get resources.
-     * The main gameplay mechanics lies HERE.
+     * Orders player depending on their lowest number on their cards
      */
-    fun applyRoll(user: User) {
-        val board = boards[user]!!
-        // clear path
-        pathUsed.clear()
-        val reward = advanceOnBoard(boardSize / 2, boardSize / 2, 0,0,0,0, diceRoll, mutableListOf(), board)
-        // apply the reward
-        gold[user] = gold[user]!! + reward.gold
-        points[user] = points[user]!! + reward.points
-        minusTokens[user] = minusTokens[user]!! + reward.minusTokens
-        plusTokens[user] = plusTokens[user]!! + reward.plusTokens
-    }
-
-    private fun advanceOnBoard(
-        x: Int, y: Int,
-        gold: Int,
-        points: Int,
-        minusTokens: Int,
-        plusTokens: Int,
-        diceRoll: Int,
-        visitedTiles: MutableList<Tile>,
-        board: Array<Array<Tile?>>
-    ): Reward {
-        val currentTile = board[x][y]!!
-        visitedTiles.add(currentTile)
-        pathUsed.add(currentTile.id)
-        // get bonus on current tile
-        var newGold = gold + currentTile.gold
-        var newPoints = points + currentTile.points
-        var newMinusTokens = minusTokens + currentTile.minusTokens
-        var newPlusTokens = plusTokens + currentTile.plusTokens
-        val newX: Int
-        val newY: Int
-
-        // get next tile
-        when((currentTile.directions.indexOf(diceRoll-1) + currentTile.direction) % 6) {
-            1 -> {
-                newX = x-1
-                newY = y + (x+1)%2
-            }
-            2 -> {
-                newX = x
-                newY = y + 1
-            }
-            3 -> {
-                newX = x+1
-                newY = y + (x+1)%2
-            }
-            4 -> {
-                newX = x+1
-                newY = y - x%2
-            }
-            5 -> {
-                newX = x
-                newY = y-1
-            }
-            0 -> {
-                newX = x-1
-                newY = y - x%2
-            }
-            else -> return Reward(newGold, newPoints, newMinusTokens, newPlusTokens)
-        }
-        val nextTile = board.getOrNull(newX)?.getOrNull(newY)
-
-        when {
-            nextTile == null -> // no more tiles
-                return Reward(newGold, newPoints, newMinusTokens, newPlusTokens)
-            visitedTiles.contains(nextTile) -> {
-                // loop! get double the bonus for the tile that looped
-                var inLoop = false
-                for(t in visitedTiles) {
-                    if (t == nextTile) {
-                        inLoop = true // we arrived in the loop begin to get bonus
-                    }
-                    if (inLoop) {
-                        newGold += t.gold
-                        newPoints += t.points
-                        newMinusTokens += t.minusTokens
-                        newPlusTokens += t.plusTokens
-                    }
-                }
-                return Reward(newGold, newPoints, newMinusTokens, newPlusTokens)
-            }
-            else -> // next
-                return advanceOnBoard(newX, newY, newGold, newPoints, newMinusTokens, newPlusTokens, diceRoll, visitedTiles, board)
-        }
+    fun orderPlayers(): User {
+        // TODO
+        return players[0]
     }
 }
