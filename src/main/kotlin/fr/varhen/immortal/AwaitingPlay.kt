@@ -11,7 +11,7 @@ class AwaitingPlay(game: ImmortalGame, user: User) : GameState(game, user) {
         return when(action) {
             is Action.Invalid -> this // do nothing when action was invalid
             is Action.UseAction -> {
-                // check if move is valid
+                // check if move is valid TODO
                 this
             }
             is Action.Pass -> {

@@ -10,6 +10,7 @@ abstract class GameState(val game: ImmortalGame, val user: User?) {
             is Starting -> "STARTING"
             is AwaitingPlay -> "AWAITING_PLAY"
             is AwaitingDraft -> "AWAITING_DRAFT"
+            is AwaitingCommerceChoice -> "AWAITING_COMMERCE_CHOICE"
             is Ended -> "ENDED"
             else -> "NONE"
         }

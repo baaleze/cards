@@ -11,16 +11,30 @@ class AwaitingDraft(game: ImmortalGame) : GameState(game, null) {
             is Action.Invalid -> this // do nothing when action was invalid
             is Action.PlayCard -> {
                 // check if player has card and can play it
+                if (game.hands[user]?.any {it.id == action.cardId} == true) {
+                    // Play for real
+                    game.play(action.cardId, user!!, action.useForGold, action.additionalArgs)
 
-                // Play for real
+                    // check if every one has played
+                    return if (game.hasDrafted.all { it.value }) {
+                        // next draft turn
+                        if (game.round == 0 && game.draftTurn == 4) {
+                            // END DRAFT
+                            game.draftTurn = 0
+                            AwaitingPlay(game, game.orderPlayers())
+                        } else {
+                            game.draftTurn++
+                            // swap hands
+                            game.swapHands()
+                            // draft again!
+                            AwaitingDraft(game)
+                        }
 
-                // Gain coin instead
-
-                // check if every one has played
-                return when {
-                    // start the first round
-                    game.hasDrafted.all { it.value } -> AwaitingPlay(game, game.orderPlayers()) // todo find user
-                    else -> this
+                    } else {
+                        this
+                    }
+                } else {
+                    this
                 }
             }
             else -> {

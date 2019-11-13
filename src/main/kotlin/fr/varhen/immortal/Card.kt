@@ -6,7 +6,26 @@ var nextId = 0
 
 fun buildAllCards(nbBuildings: Int): MutableList<Card> {
     with(mutableListOf<Card>()) {
-        addCard(this, 1,"Lion", 0, arrayOf(Faction.NARASHIMA), CardType.HERO, ::noop, false,
+        addCard(this, 1, "Alpha", 1, arrayOf(Faction.WAR), CardType.HERO,
+            { c,g,u,s -> g.addToken(u, Commerce.WAR, 1) }, false,
+            { c,g,u,s -> g.drawCommerce(u, 1)},
+            { c,g,u,s -> true },
+            { c,g,u ->
+                if (g.hasSupremacy(u, Commerce.WAR)) {
+                    g.addSupremacy(u)
+                }
+            })
+        // TODO abunakashi
+        addCard(this, 1, "Eliana", 3, arrayOf(Faction.SCIENCE), CardType.HERO,
+            { c,g,u,s -> g.addToken(u, Commerce.SCIENCE, 1) }, false,
+            { c,g,u,s -> g.putCulture(u, s.toInt(), 2)},
+            { c,g,u,s -> g.hasBuildings(u) },
+            { c,g,u ->
+                if (g.hasCard("Observatoire de Phoenix", u)) {
+                    g.addSupremacy(u)
+                }
+            })
+        addCard(this, 1,"Lion", 11, arrayOf(Faction.NARASHIMA), CardType.HERO, ::noop, false,
             { c,g,u,s ->
                 c.culture += g.getCulture(s.toInt())
                 // destroy building

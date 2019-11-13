@@ -1,8 +1,8 @@
 package fr.varhen.immortal
 
 
-fun buildCommerce(): List<Commerce> {
-    return listOf(
+fun buildCommerce(): MutableList<Commerce> {
+    return mutableListOf(
         Commerce.CHAOS,
         Commerce.CHAOS,
         Commerce.CHAOS,
@@ -17,7 +17,9 @@ fun buildCommerce(): List<Commerce> {
         Commerce.COIN,
         Commerce.DIAMOND,
         Commerce.DIAMOND
-    ).shuffled()
+    ).also {
+        it.shuffle()
+    }
 }
 
 enum class Commerce {
