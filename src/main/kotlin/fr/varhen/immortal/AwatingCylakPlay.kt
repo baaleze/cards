@@ -5,18 +5,15 @@ import fr.varhen.User
 import fr.varhen.sendError
 import io.javalin.websocket.WsSession
 
-class AwaitingCommerceChoice(game: ImmortalGame, user: User): GameState(game, user) {
+class AwatingCylakPlay(g: ImmortalGame, u: User) : GameState(g,u) {
 
     override fun nextState(action: Action, session: WsSession): GameState {
         return when(action) {
             is Action.Invalid -> this // do nothing when action was invalid
-            is Action.ChooseCommerce -> {
-                // valid choice ?
-                return if (action.commerce != null && game.commerceChoice.contains(action.commerce)) {
-                    game.addToken(user!!, action.commerce, if (action.commerce == Commerce.COIN) 2 else 1)
+            is Action.PlayOrNot -> {
+                if (action.play && game.cylakTopCard.canDoAction(game.cylakTopCard, game, user!!, action.additionalArgs)) {
+                    game.cylakTopCard.action(game.cylakTopCard, game, user, action.additionalArgs)
                     AwaitingPlay(game, user)
-                } else if (action.commerce == null){
-                    AwaitingPlay(game, user!!) // the choice is take nothing
                 } else {
                     this
                 }

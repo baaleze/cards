@@ -18,7 +18,7 @@ class AwaitingImmortalChoice(game: ImmortalGame) : GameState(game,  null) {
 
                 // check if every one has done the choice
                 return if (game.immortals.all { it.value.count() == 1 }) {
-                    game.reveal(game)
+                    game.reveal()
                 } else {
                     this
                 }

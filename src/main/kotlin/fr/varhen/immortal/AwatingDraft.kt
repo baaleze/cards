@@ -21,7 +21,14 @@ class AwaitingDraft(game: ImmortalGame) : GameState(game, null) {
                         if (game.round == 0 && game.draftTurn == 4) {
                             // END DRAFT
                             game.draftTurn = 0
-                            AwaitingPlay(game, game.orderPlayers())
+                            // sort players
+                            game.orderPlayers()
+                            AwaitingPlay(game, game.players[0])
+                        } else if (game.round == 1 && game.draftTurn == 3) {
+                            // END DRAFT 2
+                            game.draftTurn = 0
+                            // next player is LAST one
+                            AwaitingPlay(game, game.players[game.players.count() - 1])
                         } else {
                             game.draftTurn++
                             // swap hands

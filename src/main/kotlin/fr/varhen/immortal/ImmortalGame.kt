@@ -51,6 +51,9 @@ class ImmortalGame(n: String, val set: String? = "default") : Game(n) {
     var justiceRevealed = false
     var tomorrowGuessPoints = 0
     var narashimaCulture = 0
+    var cylakTopCard = emptyCard()
+
+
     val hasDrafted = mutableMapOf<User, Boolean>()
     val commerceChoice = mutableListOf<Commerce>()
     var immortalRevealCounter = 0
@@ -82,7 +85,22 @@ class ImmortalGame(n: String, val set: String? = "default") : Game(n) {
                             data.getString("additionalArgs")
                         )
                     }
-                    // TODO add other actions
+                    "CHOOSE_COMMERCE" -> {
+                        val data = message.getJSONObject("data")
+                        Action.ChooseCommerce(Commerce.valueOf(data.getString("commerce")))
+                    }
+                    "GUESS" -> {
+                        val data = message.getJSONObject("data")
+                        Action.Guess(parseGuess(data.getJSONObject("guess")), data.getBoolean("usedJoker"))
+                    }
+                    "CHOOSE_IMMORTAL" -> {
+                        val data = message.getJSONObject("data")
+                        Action.ChooseImmortal(data.getString("name"))
+                    }
+                    "CHOOSE_WHAT_TO_DESTROY" -> {
+                        val data = message.getJSONObject("data")
+                        Action.ChooseWhatToDestroy(data.getJSONArray("cardIds"))
+                    }
                     "PASS" -> Action.Pass
                     else -> {
                         sendError(
@@ -110,16 +128,31 @@ class ImmortalGame(n: String, val set: String? = "default") : Game(n) {
         }
     }
 
+    fun parseGuess(jsonObject: JSONObject): Map<Int, String> {
+        return mutableMapOf<Int, String>().also {
+            for(i in 0..players.count()) {
+                it[i] = jsonObject[i.toString()] as String
+            }
+        }
+    }
+
     fun getCulture(id: Int): Int {
         return findCard(id)?.culture ?: 0
     }
 
     fun addToken(user: User, type: Commerce, nb: Int) {
+        val amount =
+            if (totalTokens(user) + nb > 10 && type != Commerce.COIN && type != Commerce.DIAMOND)
+                10 - totalTokens(user)
+            else if (type == Commerce.COIN && gold[user]!! + nb > 10)
+                10 - gold[user]!!
+            else
+                nb
         when(type) {
-            Commerce.WAR -> war[user]?.plus(nb)
-            Commerce.SCIENCE -> science[user]?.plus(nb)
-            Commerce.CHAOS -> chaos[user]?.plus(nb)
-            Commerce.COIN -> gold[user]?.plus(nb*2)
+            Commerce.WAR -> war[user]?.plus(amount)
+            Commerce.SCIENCE -> science[user]?.plus(amount)
+            Commerce.CHAOS -> chaos[user]?.plus(amount)
+            Commerce.COIN -> gold[user]?.plus(amount)
             Commerce.DIAMOND ->
                 if (gold[user]!! >= 5 && remainingDiamonds > 0) {
                     gold[user]?.minus(5)
@@ -152,7 +185,19 @@ class ImmortalGame(n: String, val set: String? = "default") : Game(n) {
     }
 
     fun swapHands() {
-        // TODO
+        if (round == 0) {
+            val firstHand = hands[players[0]]!!
+            for (i in 0..players.count()-2) {
+                hands[players[i]] = hands[players[i+1]]!!
+            }
+            hands[players[players.count()-1]] = firstHand
+        } else {
+            val lastHand = hands[players[players.count()-1]]!!
+            for (i in players.count()-1 downTo 1) {
+                hands[players[i]] = hands[players[i-1]]!!
+            }
+            hands[players[0]] = lastHand
+        }
     }
 
     fun play(id: Int, user: User, playForGold: Boolean, additionalArgs: String) {
@@ -183,6 +228,16 @@ class ImmortalGame(n: String, val set: String? = "default") : Game(n) {
         }
     }
 
+    fun getNumberOfTokenTriplets(user: User): Int {
+        return Math.min(Math.min(
+            war[user] ?: 0, science[user] ?: 0
+        ), chaos[user] ?: 0)
+    }
+
+    fun addPoints(user: User, nb: Int) {
+        pointTokens[user]?.plus(nb)
+    }
+
     fun addSupremacy(user: User) {
         supremacy[user]?.plus(1)
     }
@@ -197,9 +252,10 @@ class ImmortalGame(n: String, val set: String? = "default") : Game(n) {
     }
 
     fun hasSupremacy(user: User, tokenCounts: MutableMap<User, Int>): Boolean {
-        // get user's
-        val own = tokenCounts[user]!!
-        for ((u, c) in tokenCounts) {
+        // get user's (nezha gives 1 more)
+        val own = tokenCounts[user]!! + if (heroes[user]!!.any { it.name == "Nezha" }) 1 else 0
+        for ((u, count) in tokenCounts) {
+            val c = count + if (heroes[u]!!.any { it.name == "Nezha" }) 1 else 0
             if (c > own) {
                 return false // someone has more!
             } else if (c == own && u != user) {
@@ -226,27 +282,27 @@ class ImmortalGame(n: String, val set: String? = "default") : Game(n) {
         }
     }
 
-    fun reveal(game: ImmortalGame): GameState {
+    fun reveal(): GameState {
         return when(immortalRevealCounter) {
             0 -> // justice
             {
                 if (!justiceRevealed) {
                     val u = players.find { immortals[it]!![0].name == "Justice" }
                     if (u != null) { // one player has justice ?
-                        allImmortals[immortalRevealCounter].onEnd(game, u)
+                        allImmortals[immortalRevealCounter].onEnd(this, u)
                     }
                 }
                 immortalRevealCounter++
-                reveal(game) // next
+                reveal() // next
             }
             1 -> // tomorrow
             {
                 val u = players.find { immortals[it]!![0].name == "Tomorrow" }
                 immortalRevealCounter++
                 if (u != null) { // one player has tomorrow ?
-                    AwaitingTomorrowGuess(game, u)
+                    AwaitingTomorrowGuess(this, u)
                 } else {
-                    reveal(game)
+                    reveal()
                 }
             }
             4 -> // narashima
@@ -254,18 +310,53 @@ class ImmortalGame(n: String, val set: String? = "default") : Game(n) {
                 val u = players.find { immortals[it]!![0].name == "Tomorrow" }
                 immortalRevealCounter++
                 if (u != null) { // one player has tomorrow ?
-                    AwaitingNarashimaDestroy(game, u)
+                    AwaitingNarashimaDestroy(this, u)
                 } else {
-                    reveal(game)
+                    reveal()
                 }
             }
             2,3,5,6,7 -> // all else
             {
                 immortalRevealCounter++
-                reveal(game)
+                reveal()
             }
-            else -> Ended(game) // revealed everyone
+            else -> { // revealed everyone
+                // apply on end effect
+                for ((p, cards) in buildings) {
+                    for (c in cards) {
+                        c.onEnd(c, this, p)
+                    }
+                }
+                for ((p, cards) in heroes) {
+                    for (c in cards) {
+                        c.onEnd(c, this, p)
+                    }
+                }
+                Ended(this)
+            }
         }
+    }
+
+    fun dealHands() {
+        // clear to be safe
+        hands.clear()
+        // shuffle supply
+        allCards.shuffle()
+        val handSize = if (round == 0) 5 else 4
+        for(p in players) {
+            hands[p] = mutableListOf()
+            repeat(handSize) {
+                hands[p]!!.add(dealCard())
+            }
+        }
+    }
+
+    private fun dealCard(): Card {
+        return allCards.removeAt(0)
+    }
+
+    fun hasCard(name: String, user: User): Boolean {
+        return (buildings[user]?.any { it.name == name } == true) || (heroes[user]?.any { it.name == name } == true)
     }
 
     fun hasCard(id: Int, user: User): Boolean {
@@ -356,10 +447,32 @@ class ImmortalGame(n: String, val set: String? = "default") : Game(n) {
     }
 
     /**
-     * Orders player depending on their lowest number on their cards
+     * Orders player depending on their lowest number on their cards and returns first player
      */
-    fun orderPlayers(): User {
-        // TODO
-        return players[0]
+    fun orderPlayers() {
+        val lowestCardNumbers = mutableMapOf<User, Int>()
+        for(p in players) {
+            lowestCardNumbers[p] = lowerCardNumber(p)
+        }
+        players.sortBy { lowestCardNumbers[it] }
+    }
+
+    fun lowerCardNumber(user: User): Int {
+        return Math.min(
+            buildings[user]!!.minBy { it.number }?.number ?: 50,
+            heroes[user]!!.minBy { it.number }?.number ?: 50
+        )
+    }
+
+    fun putCulture(user: User, cardId: Int, nb: Int) {
+        findCard(cardId)?.culture?.plus(nb)
+    }
+
+    fun payMoney(user: User, amount: Int) {
+        gold[user]?.minus(amount)
+    }
+
+    fun totalTokens(other: User): Int {
+        return chaos[other]!! + science[other]!! + war[other]!!
     }
 }

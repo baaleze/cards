@@ -17,12 +17,12 @@ class AwaitingTomorrowGuess(game: ImmortalGame, user: User): GameState(game, use
                         var u = game.players.find { it.id == userId }!!
                         if (game.immortals[u]!![0].name != name) {
                             // wrong!!
-                            return game.reveal(game)
+                            return game.reveal()
                         }
                     }
                     // correct
                     game.tomorrowGuessPoints = if (action.usedJoker) 10 else 15
-                    return game.reveal(game)
+                    return game.reveal()
                 } else {
                     this
                 }

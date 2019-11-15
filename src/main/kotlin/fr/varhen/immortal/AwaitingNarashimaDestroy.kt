@@ -10,13 +10,13 @@ class AwaitingNarashimaDestroy(game: ImmortalGame, user: User): GameState(game, 
         return when(action) {
             is Action.Invalid -> this // do nothing when action was invalid
             is Action.ChooseWhatToDestroy -> {
-                return if (action.cards.all { game.hasCard(it, user!!) }) {
+                return if (action.cards.all { game.hasCard(it as Int, user!!) }) {
                     for (cardId in action.cards) {
-                        val card = game.findCard(cardId)!!
+                        val card = game.findCard(cardId as Int)!!
                         game.narashimaCulture += card.culture // get culture
                         game.destroy(card, user!!)
                     }
-                    return game.reveal(game)
+                    return game.reveal()
                 } else {
                     this // invalid
                 }
