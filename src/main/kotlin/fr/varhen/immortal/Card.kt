@@ -200,9 +200,93 @@ fun buildAllCards(nbBuildings: Int): MutableList<Card> {
                     g.addSupremacy(u)
                 }
             })
+        addCard(this, 1,"Orgah", 12, arrayOf(Faction.WAR), CardType.HERO,
+            { c,g,u,s -> g.addToken(u, Commerce.WAR, 1)},
+            { c,g,u,s ->
+                // copy neightbor's building
+                val card = g.findCard(s.substringBefore('|').toInt())!!
+                card.action(card, g, u, s.substringAfter('|'))
+            },
+            { c,g,u,s ->
+                val card = g.findCard(s.substringBefore('|').toInt())!!
+                card.type == CardType.BUILDING && card.canDoAction(card, g, u, s.substringAfter('|'))
+                        && g.neighborHasCard(u, card)
+            },
+            ::noopEnd)
+        addCard(this, nbBuildings,"Armurerie de Goan-Sul", 25, arrayOf(Faction.WAR), CardType.BUILDING,
+            { c,g,u,s -> g.addToken(u, Commerce.WAR, 1) },
+            { c,g,u,s -> g.addToken(u, Commerce.WAR, 1)},
+            { c,g,u,s -> g.totalTokens(u) < 10}, ::noopEnd)
+        addCard(this, nbBuildings,"Observatoire de Phoenix", 27, arrayOf(Faction.SCIENCE), CardType.BUILDING,
+            { c,g,u,s -> g.addToken(u, Commerce.SCIENCE, 1) },
+            { c,g,u,s -> g.addToken(u, Commerce.SCIENCE, 1)},
+            { c,g,u,s -> g.totalTokens(u) < 10}, ::noopEnd)
+        addCard(this, nbBuildings,"Caravane de Xi'an", 29, arrayOf(), CardType.BUILDING,
+            ::noop,
+            { c,g,u,s ->
+                val hasWar = g.heroes[u]!!.any { it.factions.contains(Faction.WAR) }
+                val hasScience = g.heroes[u]!!.any { it.factions.contains(Faction.SCIENCE) }
+                if (hasWar && hasScience && g.totalTokens(u) == 9) {
+                    // must make a choice
+                    g.commerceChoice.clear()
+                    g.commerceChoice.add(Commerce.SCIENCE)
+                    g.commerceChoice.add(Commerce.WAR)
+                    g.gameState = AwaitingCommerceChoice(g, u)
+                } else {
+                    if (hasWar) {
+                        g.addToken(u, Commerce.WAR, 1)
+                    }
+                    if (hasScience) {
+                        g.addToken(u, Commerce.SCIENCE, 1)
+                    }
+                }
+            },
+            { c,g,u,s -> g.totalTokens(u) < 10},
+            { c,g,u -> g.addPoints(u, g.getNumberOfTokenTriplets(u)) })
+        addCard(this, nbBuildings,"Temple de Galmi", 31, arrayOf(Faction.GALMI), CardType.BUILDING,
+            ::noop,
+            { c,g,u,s ->
+                g.payMoney(u, 2)
+                g.addPoints(u, g.wonder[u]!! * 2)
+            },
+            { c,g,u,s -> g.gold[u]!! >= 2}, ::noopEnd)
+        addCard(this, nbBuildings,"Ecole d'Elite de Justice", 33, arrayOf(Faction.WAR, Faction.SCIENCE), CardType.BUILDING,
+            ::noop,
+            { c,g,u,s ->
+                g.payMoney(u, 2)
+                g.addToken(u, if (s == "WAR") Commerce.WAR else Commerce.SCIENCE, 1)
+            },
+            { c,g,u,s -> g.gold[u]!! >= 2}, ::noopEnd)
 
-        addCard(this, nbBuildings,"Observatoire de Phoenix", 0, arrayOf(Faction.SCIENCE), CardType.BUILDING,
-            ::noop, ::noop, ::cantDo, ::noopEnd)
+        addCard(this, nbBuildings,"Autel de Narashima", 35, arrayOf(Faction.NARASHIMA), CardType.BUILDING,
+            ::noop,
+            { c,g,u,s ->
+                // destroy hero
+                g.destroyHero(u, s.toInt())
+                g.addPoints(u, 3)
+            },
+            { c,g,u,s -> g.heroes[u]!!.isNotEmpty() && s.toIntOrNull() != null},
+            { c,g,u -> if (g.hasOnlyThisCard(u, "Autel de Narashima", false)) {
+                g.addSupremacy(u)
+            }})
+        addCard(this, nbBuildings,"Engins de Guerre de Goan-Sul", 37, arrayOf(Faction.WAR), CardType.BUILDING,
+            ::noop,
+            { c,g,u,s ->
+                g.payMoney(u, 2)
+                g.drawCommerce(u, 1)
+                g.addToken(u, Commerce.WAR, 1)
+            },
+            { c,g,u,s -> g.gold[u]!! >= 2}, ::noopEnd)
+        addCard(this, nbBuildings,"Bibliothèque de Phoenix", 39, arrayOf(Faction.SCIENCE), CardType.BUILDING,
+            ::noop,
+            { c,g,u,s ->
+                g.payMoney(u, 2)
+                g.findCard(s.toInt())!!.culture++
+                g.addToken(u, Commerce.SCIENCE, 1)
+            },
+            { c,g,u,s -> g.gold[u]!! >= 2 && g.buildings.any { it.value.isNotEmpty() } && s.toIntOrNull() != null}, ::noopEnd)
+
+
         // TODO do the other cards lul
         this.shuffle()
         return this
@@ -219,8 +303,8 @@ fun addCard(list: MutableList<Card>, nb: Int, name: String, number: Int,
             action: (Card, ImmortalGame, User, String) -> Unit,
             canDoAction: (Card, ImmortalGame, User, String) -> Boolean,
             onEnd: (Card, ImmortalGame, User) -> Unit): Unit {
-    repeat(nb) {
-        list.add(Card(name, number, factions, type, bonus, action, canDoAction, onEnd))
+    for (i in 0 until nb) {
+        list.add(Card(name, number + i, factions, type, bonus, action, canDoAction, onEnd))
     }
 }
 

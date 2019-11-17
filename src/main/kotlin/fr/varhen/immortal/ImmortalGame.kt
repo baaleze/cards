@@ -247,6 +247,10 @@ class ImmortalGame(n: String, val set: String? = "default") : Game(n) {
 
     fun addSupremacy(user: User) {
         supremacy[user]?.plus(1)
+        // ecole d'élite!! pour chaque instance du batiment gagner 2pv
+        repeat(buildings[user]!!.count { it.name == "Ecole d'Elite de Justice " }) {
+            addPoints(user, 2)
+        }
     }
 
     fun hasSupremacy(user: User, commerce: Commerce): Boolean {
@@ -485,5 +489,36 @@ class ImmortalGame(n: String, val set: String? = "default") : Game(n) {
 
     fun addWonder(user: User) {
         wonder[user]?.plus(1)
+    }
+
+    fun neighborHasCard(user: User, card: Card): Boolean {
+        val left = players[(players.indexOf(user) - 1) % players.count()]
+        val right = players[(players.indexOf(user) - 1) % players.count()]
+        return hasCard(card.id, left) && hasCard(card.id, right)
+    }
+
+    fun destroyHero(user: User, cardId: Int) {
+        val card = findCard(cardId)!!
+        // remove it from board
+        heroes[user]?.removeIf { it.id == cardId }
+        // special effects
+        if (card.name == "Fenghuang") {
+            // put culture on every building
+            buildings[user]!!.forEach { it.culture++ }
+            // put it back in supply
+            allCards.add(card)
+            allCards.shuffle()
+        } else if (card.factions.contains(Faction.CHAOS)) {
+            discard.add(card)
+            // if not already there put rituel du chaos in play
+            if (wonders.none { it.name == "Rituel du Chaos" }) {
+                val ritual = allCards.find { it.name == "Rituel du Chaos" }!!
+                allCards.remove(ritual)
+                wonders.add(ritual)
+                addWonder(user)
+            }
+        } else {
+            discard.add(card)
+        }
     }
 }
