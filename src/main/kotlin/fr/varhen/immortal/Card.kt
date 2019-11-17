@@ -149,6 +149,43 @@ fun buildAllCards(nbBuildings: Int): MutableList<Card> {
                 }
             },
             ::noopEnd)
+        addCard(this, 1,"Avatar de Galmi", 8, arrayOf(Faction.NARASHIMA), CardType.HERO,
+            { c,g,u,s -> g.addWonder(u)},
+            { c,g,u,s ->
+                // copy own building
+                val card = g.findCard(s.substringBefore('|').toInt())!!
+                card.action(card, g, u, s.substringAfter('|'))
+            },
+            { c,g,u,s -> g.hasBuildings(u) && s.substringBefore('|').toIntOrNull() != null },
+            { c,g,u ->
+                g.addPoints(u, (g.diamonds[u] ?: 0) * 4) // gain 4 points for each diamond
+            })
+        addCard(this, 1,"Fenghuang", 9, arrayOf(Faction.SCIENCE), CardType.HERO,
+            { c,g,u,s -> g.addToken(u, Commerce.SCIENCE, 1)},
+            { c,g,u,s ->
+                // copy blue card action anywhere
+                val card = g.findCard(s.substringBefore('|').toInt())!!
+                card.action(card, g, u, s.substringAfter('|'))
+            },
+            { c,g,u,s ->
+                val card = g.findCard(s.substringBefore('|').toInt())
+                card != null && card.factions.contains(Faction.SCIENCE) && !g.allCards.contains(card)
+            },
+            ::noopEnd)
+        addCard(this, 1,"Valeen", 10, arrayOf(Faction.SCIENCE, Faction.WAR), CardType.HERO,
+            { c,g,u,s ->
+                g.addToken(u, Commerce.SCIENCE, 1)
+                g.addToken(u, Commerce.WAR, 1)
+            },
+            { c,g,u,s ->
+                // replace blue and red token with chaos
+                g.science[u]?.minus(1)
+                g.war[u]?.minus(1)
+                g.chaos[u]?.plus(1)
+                g.addPoints(u, 1)
+            },
+            { c,g,u,s -> g.science[u]!! > 0 && g.war[u]!! > 0},
+            ::noopEnd)
         addCard(this, 1,"Lion", 11, arrayOf(Faction.NARASHIMA), CardType.HERO, ::noop,
             { c,g,u,s ->
                 c.culture += g.getCulture(s.toInt())

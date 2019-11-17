@@ -85,6 +85,13 @@ class ImmortalGame(n: String, val set: String? = "default") : Game(n) {
                             data.getString("additionalArgs")
                         )
                     }
+                    "PLAY_OR_NOT" -> {
+                        val data = message.getJSONObject("data")
+                        Action.PlayOrNot(
+                            data.getBoolean("play"),
+                            data.getString("additionalArgs")
+                        )
+                    }
                     "CHOOSE_COMMERCE" -> {
                         val data = message.getJSONObject("data")
                         Action.ChooseCommerce(Commerce.valueOf(data.getString("commerce")))
@@ -474,5 +481,9 @@ class ImmortalGame(n: String, val set: String? = "default") : Game(n) {
 
     fun totalTokens(other: User): Int {
         return chaos[other]!! + science[other]!! + war[other]!!
+    }
+
+    fun addWonder(user: User) {
+        wonder[user]?.plus(1)
     }
 }
