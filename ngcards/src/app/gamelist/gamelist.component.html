@@ -20,7 +20,7 @@
     <button (click)="createGame()" [disabled]="gameTitle === ''">NEW GAME</button>
     </div>
 </div>
-<div id="sets" *ngIf="!editingSet">
+<!-- <div id="sets" *ngIf="!editingSet">
   <div class="set-tile" *ngFor="let set of sets">
     <p>SET {{set.setName}} <em *ngIf="set.setList.length < 30">INVALID</em></p>
     <p><button (click)="editingSet = set">EDIT</button></p>
@@ -33,4 +33,4 @@
 <div id="set-edit" *ngIf="editingSet">
     <app-setedit [setName]="editingSet.setName" [setList]="editingSet.setList"
     (cancel)="editingSet = undefined" (save)="saveSet($event)"></app-setedit>
-</div>
+</div> -->

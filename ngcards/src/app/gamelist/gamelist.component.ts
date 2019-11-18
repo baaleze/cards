@@ -18,11 +18,11 @@ export class GamelistComponent implements OnInit {
   gameTitle = '';
   gameSet = 'default';
   joining: string;
-  sets: Set[];
+  /*sets: Set[];
   validSets: Set[];
   editingSet: Set;
   newSetName = '';
-
+*/
   constructor(private websocket: WebsocketService, public session: SessionService,
     private router: Router) { }
 
@@ -40,7 +40,8 @@ export class GamelistComponent implements OnInit {
               this.playGame(game);
             }
           }
-        } else if (m.type === 'SET_LIST') {
+        }
+        /* else if (m.type === 'SET_LIST') {
           // set list is in data
           this.sets = m.data;
           // valid sets
@@ -50,7 +51,7 @@ export class GamelistComponent implements OnInit {
         } else if (m.type === 'ERROR' && m.errorCode === 'GAME_FULL') {
           alert('Game is full!!');
           this.joining = undefined;
-        }
+        }*/
       }
     );
   }
@@ -80,7 +81,7 @@ export class GamelistComponent implements OnInit {
     this.session.setCurrentGame(game);
     this.router.navigateByUrl(`/game/${game.name}`);
   }
-
+/*
   editNewSet() {
     if (this.newSetName !== '') {
       this.editingSet = {
@@ -96,5 +97,5 @@ export class GamelistComponent implements OnInit {
       setList: set
     }});
   }
-
+*/
 }

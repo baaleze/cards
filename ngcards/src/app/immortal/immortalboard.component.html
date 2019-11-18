@@ -1,0 +1,13 @@
+<div class="buildings">
+    <div *ngFor="let b of info.buildings">
+        <app-immortalcard [cardId]="b" (clicked)="cardClicked.emit(b)"></app-immortalcard>
+    </div>
+</div>
+<div class="heroes">
+    <div *ngFor="let h of info.heroes">
+        <app-immortalcard [cardId]="h" (clicked)="cardClicked.emit(b)"></app-immortalcard>
+    </div>
+</div>
+<div class="tokens">
+    <span *ngFor="let t of tokens" [class]="t">{{info[t]}}</span>
+</div>

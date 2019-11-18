@@ -48,7 +48,7 @@ fun buildAllCards(nbBuildings: Int): MutableList<Card> {
             ::noopEnd)
         addCard(this, 1, "Eliana", 3, arrayOf(Faction.SCIENCE), CardType.HERO,
             { c,g,u,s -> g.addToken(u, Commerce.SCIENCE, 1) },
-            { c,g,u,s -> g.putCulture(u, s.toInt(), 2)},
+            { c,g,u,s -> g.putCulture(s.toInt(), 2)},
             { c,g,u,s -> g.hasBuildings(u) },
             { c,g,u ->
                 if (g.hasCard("Observatoire de Phoenix", u)) {
@@ -448,14 +448,13 @@ fun buildAllCards(nbBuildings: Int): MutableList<Card> {
         addCard(this, 1,"Sablier d'Ambre", 0, arrayOf(Faction.GALMI), CardType.WONDER,
             { c,g,u,s -> g.addWonder(u)},
             ::noop, ::cantDo, ::noopEnd)
-        // TODO do the other cards lul
         this.shuffle()
         return this
     }
 }
 
-fun noop(c: Card, g: ImmortalGame, u: User, additionalArgs: String): Unit {}
-fun noopEnd(c: Card, g: ImmortalGame, u: User): Unit {}
+fun noop(c: Card, g: ImmortalGame, u: User, additionalArgs: String) {}
+fun noopEnd(c: Card, g: ImmortalGame, u: User) {}
 fun cantDo(c: Card, g: ImmortalGame, u: User, additionalArgs: String): Boolean { return false }
 
 fun addCard(list: MutableList<Card>, nb: Int, name: String, number: Int,
@@ -463,7 +462,7 @@ fun addCard(list: MutableList<Card>, nb: Int, name: String, number: Int,
             bonus: (Card, ImmortalGame, User, String) -> Unit,
             action: (Card, ImmortalGame, User, String) -> Unit,
             canDoAction: (Card, ImmortalGame, User, String) -> Boolean,
-            onEnd: (Card, ImmortalGame, User) -> Unit): Unit {
+            onEnd: (Card, ImmortalGame, User) -> Unit) {
     for (i in 0 until nb) {
         list.add(Card(name, number + i, factions, type, bonus, action, canDoAction, onEnd))
     }

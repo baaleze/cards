@@ -9,6 +9,7 @@ import fr.varhen.Error
 import io.javalin.websocket.WsSession
 import org.json.JSONArray
 import org.json.JSONObject
+import kotlin.math.min
 
 class ImmortalGame(n: String, val set: String? = "default") : Game(n) {
 
@@ -414,6 +415,10 @@ class ImmortalGame(n: String, val set: String? = "default") : Game(n) {
             .put("round", round)
             .put("currentWonderUse", currentUserWonderUses)
             .put("drafting", drafting)
+            .put("cylakTopCard", cylakTopCard.id)
+            .put("chaosPortalCards", chaosPortalCards.map { it.id })
+            .put("commerceChoice", JSONArray(commerceChoice))
+            .put("narashimaCulture", narashimaCulture)
         )
     }
 
@@ -468,14 +473,11 @@ class ImmortalGame(n: String, val set: String? = "default") : Game(n) {
         players.sortBy { lowestCardNumbers[it] }
     }
 
-    fun lowerCardNumber(user: User): Int {
-        return Math.min(
-            buildings[user]!!.minBy { it.number }?.number ?: 50,
-            heroes[user]!!.minBy { it.number }?.number ?: 50
-        )
+    private fun lowerCardNumber(user: User): Int {
+        return min(buildings[user]!!.minBy { it.number }?.number ?: 50, heroes[user]!!.minBy { it.number }?.number ?: 50)
     }
 
-    fun putCulture(user: User, cardId: Int, nb: Int) {
+    fun putCulture(cardId: Int, nb: Int) {
         findCard(cardId)?.culture?.plus(nb)
     }
 

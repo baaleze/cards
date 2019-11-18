@@ -1,0 +1,10 @@
+<div class="main">
+    <div class="player-left"  (cardClicked)="onClick(left, $event)"></div>
+    <div class="player-right"  (cardClicked)="onClick(right, $event)"></div>
+    <div class="player-front"  (cardClicked)="onClick(front, $event)"></div>
+    <div class="wonders"></div>
+    <div class="draft">
+        <app-immortalcard *ngFor="let c of hand" [cardId]="c" (cardClicked)="draft(c)" ></app-immortalcard>
+    </div>
+    <div class="my-board" (cardClicked)="onClick(me, $event)"></div>
+</div>
