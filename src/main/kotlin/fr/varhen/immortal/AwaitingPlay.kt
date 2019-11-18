@@ -13,11 +13,17 @@ class AwaitingPlay(game: ImmortalGame, user: User) : GameState(game, user) {
             is Action.UseAction -> {
                 val card = game.findCard(action.cardId)!!
                 // check if move is valid
-                if (card.canDoAction(card, game, user!!, action.additionalArgs)) {
+                if (card.canDoAction(card, game, user!!, action.additionalArgs) &&
+                    (card.type != CardType.WONDER ||
+                            (card.type == CardType.WONDER && game.currentUserWonderUses > 0))) {
                     // ok do it
                     card.action(card, game, user, action.additionalArgs)
                     // the card is used!
                     card.tapped = true
+                    // wonder use
+                    if (card.type == CardType.WONDER) {
+                        game.currentUserWonderUses--
+                    }
                 }
                 this // stay in play card state
             }
@@ -36,6 +42,8 @@ class AwaitingPlay(game: ImmortalGame, user: User) : GameState(game, user) {
     }
 
     fun nextPlayer(game: ImmortalGame, user: User): GameState {
+        // reset wonder uses
+        game.currentUserWonderUses = if (game.wonders.any { it.name == "Sablier d'Ambre" }) 2 else 1
         val index = game.players.indexOf(user)
         return if (game.round == 0) {
             // 1st round going up list
@@ -65,7 +73,7 @@ class AwaitingPlay(game: ImmortalGame, user: User) : GameState(game, user) {
             if (game.hasSupremacy(p, Commerce.SCIENCE)) {
                 game.addSupremacy(p)
             }
-            if (game.wonders.any { it.name == "Rituel du Chaos" } && game.hasSupremacy(p, Commerce.CHAOS)) {
+            if (game.wonders.any { it.name == "Rituel des Ombres" } && game.hasSupremacy(p, Commerce.CHAOS)) {
                 game.addSupremacy(p)
             }
         }

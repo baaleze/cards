@@ -285,8 +285,169 @@ fun buildAllCards(nbBuildings: Int): MutableList<Card> {
                 g.addToken(u, Commerce.SCIENCE, 1)
             },
             { c,g,u,s -> g.gold[u]!! >= 2 && g.buildings.any { it.value.isNotEmpty() } && s.toIntOrNull() != null}, ::noopEnd)
-
-
+        addCard(this, nbBuildings,"Portail du Chaos", 41, arrayOf(Faction.CHAOS), CardType.BUILDING,
+            { c,g,u,s -> g.addToken(u, Commerce.CHAOS, 1) },
+            { c,g,u,s ->
+                // destroy the card
+                g.destroy(c, u)
+                // draw 3 cards
+                g.chaosPortalCards.clear()
+                repeat(3) {
+                    g.chaosPortalCards.add(g.allCards[it])
+                }
+                g.gameState = AwatingChaosPortalPlay(g, u)
+            },
+            { c,g,u,s -> true }, ::noopEnd)
+        addCard(this, nbBuildings,"Forteresse de Galmi", 43, arrayOf(Faction.GALMI), CardType.BUILDING,
+            ::noop,
+            { c,g,u,s ->
+                g.payMoney(u, 2)
+                val card = g.findCard(s.substringBefore('|').toInt())!!
+                card.action(card, g, u, s.substringAfter('|'))
+            },
+            { c,g,u,s ->
+                val card = g.findCard(s.substringBefore('|').toInt())
+                g.gold[u]!! >= 2 && card != null &&
+                        (card.type == CardType.BUILDING ||
+                                (card.type == CardType.HERO && g.heroes[u]!!.any { it.id == card.id }))
+            },
+            { c,g,u -> g.addPoints(u, g.wonder[u] ?: 0)})
+        addCard(this, nbBuildings,"Incroyable Marché de Xi'an", 45, arrayOf(), CardType.BUILDING,
+            ::noop,
+            { c,g,u,s ->
+                g.drawCommerce(u, 2)
+            },
+            { c,g,u,s -> true }, ::noopEnd)
+        addCard(this, nbBuildings,"Trésor de Byun Hyung Ja", 47, arrayOf(), CardType.BUILDING,
+            ::noop,
+            { c,g,u,s ->
+                g.addToken(u, Commerce.COIN, 3)
+            },
+            { c,g,u,s -> true }, ::noopEnd)
+        // WONDERS
+        addCard(this, 1,"Hall de Guerre de Goan-Sul", 0, arrayOf(Faction.WAR), CardType.WONDER,
+            { c,g,u,s -> g.addWonder(u)},
+            { c,g,u,s ->
+                val cardId = s.substringBefore('|').toInt()
+                var card: Card? = null
+                for ((user, buildings) in g.buildings) {
+                    if (user != u && buildings.any { it.id == cardId }) {
+                        card = buildings.find { it.id == cardId }!!
+                    }
+                }
+                card?.action(card, g, u, s.substringAfter('|'))
+            },
+            { c,g,u,s ->
+                g.buildings.any { entry -> entry.key != u && entry.value.any { it.id == s.substringBefore('|').toInt() } }
+            }, ::noopEnd)
+        addCard(this, 1,"Cité Volante de Phoenix", 0, arrayOf(Faction.SCIENCE), CardType.WONDER,
+            { c,g,u,s -> g.addWonder(u)},
+            { c,g,u,s ->
+                for(b in g.buildings[u]!!) {
+                    b.culture++
+                }
+            },
+            { c,g,u,s -> true }, ::noopEnd)
+        addCard(this, 1,"Fabuloserie de Xi'an", 0, arrayOf(), CardType.WONDER,
+            { c,g,u,s -> g.addWonder(u)},
+            { c,g,u,s ->
+                if (s == "WAR") {
+                    g.science[u]?.minus(1)
+                    g.addToken(u, Commerce.WAR, 2)
+                } else {
+                    g.war[u]?.minus(1)
+                    g.addToken(u, Commerce.SCIENCE, 2)
+                }
+            },
+            { c,g,u,s -> true }, ::noopEnd)
+        addCard(this, 1,"Statues Jumelles", 0, arrayOf(), CardType.WONDER,
+            { c,g,u,s -> g.addWonder(u)},
+            { c,g,u,s ->
+                if (g.totalTokens(u) < 10) {
+                    if (s == "WAR") {
+                        if (g.war[u]!! == 1) {
+                            g.war[u] = 2
+                        } else if (g.war[u]!! == 0) {
+                            g.war[u] = if (g.totalTokens(u) == 9) 1 else 2
+                        }
+                    } else {
+                        if (g.science[u]!! == 1) {
+                            g.science[u] = 2
+                        } else if (g.science[u]!! == 0) {
+                            g.science[u] = if (g.totalTokens(u) == 9) 1 else 2
+                        }
+                    }
+                } // else do nothing
+            },
+            { c,g,u,s -> true }, ::noopEnd)
+        addCard(this, 1,"Terres de Feu de Narashima", 0, arrayOf(), CardType.WONDER,
+            { c,g,u,s -> g.addWonder(u)},
+            { c,g,u,s ->
+                val args = s.split(",")
+                for (i in 1..2) {
+                    g.addToken(u,
+                        when(args[i]) {
+                            "WAR" -> Commerce.WAR
+                            "SCIENCE" -> Commerce.SCIENCE
+                            else -> Commerce.CHAOS
+                        }
+                        , 1)
+                }
+                g.destroy(args[0].toInt(), u)
+            },
+            { c,g,u,s -> g.heroes[u]!!.isNotEmpty() || g.buildings[u]!!.isNotEmpty() }, ::noopEnd)
+        addCard(this, 1,"Sanctuaire de Galmi", 0, arrayOf(Faction.GALMI), CardType.WONDER,
+            { c,g,u,s -> g.addWonder(u)},
+            { c,g,u,s ->
+                g.payMoney(u, 5 - g.buildings[u]!!.count { it.factions.contains(Faction.GALMI) })
+                g.addWonder(u)
+            },
+            { c,g,u,s -> g.gold[u]!! >= 5 - g.buildings[u]!!.count { it.factions.contains(Faction.GALMI) } }, ::noopEnd)
+        addCard(this, 1,"Orbe du Chaos", 0, arrayOf(Faction.CHAOS), CardType.WONDER,
+            { c,g,u,s -> g.addWonder(u)},
+            { c,g,u,s ->
+                val cardId = s.substringBefore('|').toInt()
+                var card: Card? = null
+                for ((user, heroes) in g.heroes) {
+                    if (user != u && heroes.any { it.id == cardId }) {
+                        card = heroes.find { it.id == cardId }!!
+                    }
+                }
+                card?.action(card!!, g, u, s.substringAfter('|'))
+            },
+            { c,g,u,s ->
+                g.heroes.any { entry -> entry.key != u && entry.value.any { it.id == s.substringBefore('|').toInt() } }
+            }, ::noopEnd)
+        addCard(this, 1,"Epées de Justice", 0, arrayOf(), CardType.WONDER,
+            { c,g,u,s -> g.addWonder(u)},
+            { c,g,u,s ->
+                val args = s.split(",")
+                for (i in 0..4) {
+                    when(args[i]) {
+                        "WAR" -> g.war[u]?.minus(1)
+                        "SCIENCE" -> g.science[u]?.minus(1)
+                        else -> g.chaos[u]?.minus(1)
+                    }
+                }
+                g.addSupremacy(u)
+            },
+            { c,g,u,s -> g.totalTokens(u) >= 5 && s.split(",").count() == 5 }, ::noopEnd)
+        addCard(this, 1,"Mine de Diamant", 0, arrayOf(), CardType.WONDER,
+            { c,g,u,s -> g.addWonder(u)},
+            { c,g,u,s ->
+                g.payMoney(u, 5)
+                g.addDiamond(u)
+            },
+            { c,g,u,s -> g.gold[u]!! >= 5 && g.remainingDiamonds > 0 }, ::noopEnd)
+        addCard(this, 1,"Rituel des Ombres", 0, arrayOf(Faction.CHAOS), CardType.WONDER,
+            { c,g,u,s -> g.addWonder(u)},
+            ::noop, ::cantDo, ::noopEnd)
+        addCard(this, 1,"Equilibrium", 0, arrayOf(), CardType.WONDER,
+            { c,g,u,s -> g.addWonder(u)},
+            ::noop, ::cantDo, ::noopEnd)
+        addCard(this, 1,"Sablier d'Ambre", 0, arrayOf(Faction.GALMI), CardType.WONDER,
+            { c,g,u,s -> g.addWonder(u)},
+            ::noop, ::cantDo, ::noopEnd)
         // TODO do the other cards lul
         this.shuffle()
         return this

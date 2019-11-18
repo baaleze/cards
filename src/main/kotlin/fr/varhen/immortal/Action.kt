@@ -8,6 +8,7 @@ sealed class Action {
     data class UseAction(val cardId: Int, val additionalArgs: String): Action()
     data class PlayCard(val cardId: Int, val useForGold: Boolean, val additionalArgs: String) : Action()
     data class ChooseCommerce(val commerce: Commerce?): Action()
+    data class ChooseChaosPortal(val cardId: Int, val additionalArgs: String): Action()
     data class Guess(val guesses: Map<Int, String>, val usedJoker: Boolean): Action()
     data class ChooseImmortal(val name: String): Action()
     data class ChooseWhatToDestroy(val cards: JSONArray): Action()

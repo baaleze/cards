@@ -33,7 +33,6 @@ class ImmortalGame(n: String, val set: String? = "default") : Game(n) {
     val immortals = mutableMapOf<User, MutableList<Immortal>>()
 
     val gold = mutableMapOf<User, Int>()
-    val points = mutableMapOf<User, Array<Int>>()
     val chaos = mutableMapOf<User, Int>()
     val science = mutableMapOf<User, Int>()
     val war = mutableMapOf<User, Int>()
@@ -56,6 +55,7 @@ class ImmortalGame(n: String, val set: String? = "default") : Game(n) {
 
     val hasDrafted = mutableMapOf<User, Boolean>()
     val commerceChoice = mutableListOf<Commerce>()
+    val chaosPortalCards = mutableListOf<Card>()
     var immortalRevealCounter = 0
 
     override fun handleMessage(
@@ -510,9 +510,9 @@ class ImmortalGame(n: String, val set: String? = "default") : Game(n) {
             allCards.shuffle()
         } else if (card.factions.contains(Faction.CHAOS)) {
             discard.add(card)
-            // if not already there put rituel du chaos in play
-            if (wonders.none { it.name == "Rituel du Chaos" }) {
-                val ritual = allCards.find { it.name == "Rituel du Chaos" }!!
+            // if not already there put Rituel des Ombres in play
+            if (wonders.none { it.name == "Rituel des Ombres" }) {
+                val ritual = allCards.find { it.name == "Rituel des Ombres" }!!
                 allCards.remove(ritual)
                 wonders.add(ritual)
                 addWonder(user)
