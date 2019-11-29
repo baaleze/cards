@@ -1,5 +1,4 @@
-import { User } from "./user";
-import { ImmortalComponent } from "../immortal/immortal.component";
+import { User } from './user';
 
 export class ImmortalGameInfo {
     state: string;

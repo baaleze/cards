@@ -1,5 +1,4 @@
-import { Component, OnInit } from '@angular/core';
-import { User } from '../model/user';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { ImmortalPlayerInfo } from '../model/immortal';
 
 @Component({

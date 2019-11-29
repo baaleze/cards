@@ -1,6 +1,4 @@
-import { Component, OnInit } from '@angular/core';
-import { User } from '../model/user';
-import { ImmortalPlayerInfo } from '../model/immortal';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 
 @Component({
   selector: 'app-immortalcard',
