@@ -5,6 +5,7 @@ import fr.varhen.User
 import fr.varhen.broadcastJson
 import fr.varhen.sendError
 import fr.varhen.Error
+import fr.varhen.oriflame.GameState
 
 import io.javalin.websocket.WsSession
 import org.json.JSONArray
@@ -344,7 +345,7 @@ class ImmortalGame(n: String, val set: String? = "default") : Game(n) {
                         c.onEnd(c, this, p)
                     }
                 }
-                Ended(this)
+                fr.varhen.oriflame.Ended(this)
             }
         }
     }

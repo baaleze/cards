@@ -14,6 +14,8 @@ import { SeteditComponent } from './setedit/setedit.component';
 import { ImmortalComponent } from './immortal/immortal.component';
 import { ImmortalBoardComponent } from './immortal/immortalboard.component';
 import { ImmortalCardComponent } from './immortal/immortalcard.component';
+import { OriflameComponent } from './oriflame/oriflame.component';
+import { OriflameCardComponent } from './oriflame/oriflamecard.component';
 
 @NgModule({
   declarations: [
@@ -23,6 +25,8 @@ import { ImmortalCardComponent } from './immortal/immortalcard.component';
     ImmortalComponent,
     ImmortalBoardComponent,
     ImmortalCardComponent,
+    OriflameComponent,
+    OriflameCardComponent,
     UserPipe,
     TileComponent,
     SeteditComponent

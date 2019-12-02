@@ -58,7 +58,7 @@ export class GamelistComponent implements OnInit {
 
   createGame() {
     if (this.gameTitle !== '') {
-      this.websocket.send({type: 'CREATE_GAME', message: this.gameTitle, data: { gameType: 'CARDS', set: this.gameSet} });
+      this.websocket.send({type: 'CREATE_GAME', message: this.gameTitle, data: { gameType: 'ORIFLAME', set: this.gameSet} });
       this.gameTitle = '';
     }
   }

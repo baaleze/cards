@@ -14,9 +14,6 @@
   </div>
   <div class="game-tile">
     <input [(ngModel)]="gameTitle" />
-    <select [(ngModel)]="gameSet">
-      <option *ngFor="let s of validSets" [value]="s.setName">{{s.setName}}</option>
-    </select>
     <button (click)="createGame()" [disabled]="gameTitle === ''">NEW GAME</button>
     </div>
 </div>

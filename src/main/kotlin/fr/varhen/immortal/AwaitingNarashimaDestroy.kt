@@ -2,6 +2,7 @@ package fr.varhen.immortal
 
 import fr.varhen.Error
 import fr.varhen.User
+import fr.varhen.oriflame.GameState
 import fr.varhen.sendError
 import io.javalin.websocket.WsSession
 

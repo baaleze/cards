@@ -1,11 +1,10 @@
-package fr.varhen.immortal
+package fr.varhen.oriflame
 
 import fr.varhen.Error
-import fr.varhen.oriflame.GameState
 import fr.varhen.sendError
 import io.javalin.websocket.WsSession
 
-class Ended(game: ImmortalGame): GameState(game, null) {
+class Ended(game: OriflameGame): GameState(game, null) {
     override fun nextState(action: Action, session: WsSession): GameState {
         sendError("Game is finished", Error.ILLEGAL_ACTION, session)
         return this
