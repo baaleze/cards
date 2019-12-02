@@ -1,0 +1,9 @@
+<div class="main">
+    {{ info.state }}
+    <div class="board"  (cardClicked)="boardCardClicked($event)">
+        <app-oriflamecard *ngFor="let c of board" [card]="c"></app-oriflamecard>
+    </div>
+    <div class="hand" (cardClicked)="handCardClicked($event)">
+        <app-oriflamecard *ngFor="let c of hand" [cardIndex]="c"></app-oriflamecard>
+    </div>
+</div>

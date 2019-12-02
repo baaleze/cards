@@ -10,9 +10,14 @@ fun nextCard(game: OriflameGame, user: User): GameState {
     val i = game.board.indexOf(game.currentPile) + 1
     return if (i == game.board.count()) {
         // arrived at the end of the board NEXT ROUND
-        val nextUser = game.players[(game.players.indexOf(user) + 1) % game.players.count()]
-        game.remainingCardsToPlayThisRound = game.players.count()
-        AwaitingPlay(game, nextUser)
+        if (game.hands.any { it.value.count() == 1 }) {
+            // END
+            Ended(game)
+        } else {
+            val nextUser = game.players[(game.players.indexOf(user) + 1) % game.players.count()]
+            game.remainingCardsToPlayThisRound = game.players.count()
+            AwaitingPlay(game, nextUser)
+        }
     } else {
         game.currentPile = game.board[i]
         AwaitingReveal(game, user)

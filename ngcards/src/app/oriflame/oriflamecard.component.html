@@ -1,0 +1,4 @@
+<div (click)="clicked.emit(card)" class="card">
+    <span *ngIf="card.revealed">CARD N°{{card.index}}</span>
+    <span *ngIf="!card.revealed">???</span>
+</div>

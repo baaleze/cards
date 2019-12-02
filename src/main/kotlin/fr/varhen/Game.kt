@@ -2,6 +2,8 @@ package fr.varhen
 
 import fr.varhen.cards.CardGame
 import fr.varhen.dices.DiceGame
+import fr.varhen.immortal.ImmortalGame
+import fr.varhen.oriflame.OriflameGame
 import io.javalin.websocket.WsSession
 import org.json.JSONArray
 import org.json.JSONObject
@@ -35,6 +37,8 @@ abstract class Game(val name: String) {
             .put("type", when(this) {
                 is CardGame -> "CARD"
                 is DiceGame -> "DICE"
+                is ImmortalGame -> "IMMORTAL"
+                is OriflameGame -> "ORIFLAMME"
                 else -> "OTHER"
             })
     }
