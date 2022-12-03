@@ -109,6 +109,15 @@
   dependencies:
     tslib "^1.9.0"
 
+"@angular/cdk@~7.0.0":
+  version "7.0.4"
+  resolved "https://registry.yarnpkg.com/@angular/cdk/-/cdk-7.0.4.tgz#422c2aec599f0cce0f8ce9ae6656be5b8109a4d0"
+  integrity sha512-4KbuiVLonwNwzwgJqKOvjqXfXKrdboPzFwk4vGruQV/EhGh6L8V4gy+ESS4seUuYYsMA9k+ijEeO9xUX+pAcZw==
+  dependencies:
+    tslib "^1.7.1"
+  optionalDependencies:
+    parse5 "^5.0.0"
+
 "@angular/cli@~7.0.3":
   version "7.0.7"
   resolved "http://localhost:4873/@angular%2fcli/-/cli-7.0.7.tgz#0f4500c5fcf22694c9c40f14d2a5b3dc90fbb4a3"
@@ -181,6 +190,13 @@
   version "7.0.4"
   resolved "http://localhost:4873/@angular%2flanguage-service/-/language-service-7.0.4.tgz#db221f183725ff54c1188aec7acb2948e29f4c50"
   integrity sha512-CuJ2Ii97sNoN1HOZOLxG1lEHsQFi8K/RSB/k2suWPKzdM53ldSkKoYRac38zW/uqNABYItgvxb7w0Vi7HhxLsg==
+
+"@angular/material@~7.0.0":
+  version "7.0.4"
+  resolved "https://registry.yarnpkg.com/@angular/material/-/material-7.0.4.tgz#946de5ca415bd2cb0330f520011e3dd5361654d1"
+  integrity sha512-LoDtg6srT9WPEn4bsiJqU1uXJ6bd28FtSc7prDYaPb5ogTj1zaur4LWJ7GjPK1haq4rW4W2NMTuayIsqpdGfSA==
+  dependencies:
+    tslib "^1.7.1"
 
 "@angular/platform-browser-dynamic@~7.0.0":
   version "7.0.4"
@@ -603,6 +619,14 @@ amdefine@>=0.0.4:
   version "1.0.1"
   resolved "http://localhost:4873/amdefine/-/amdefine-1.0.1.tgz#4a5282ac164729e93619bcfd3ad151f817ce91f5"
   integrity sha1-SlKCrBZHKek2Gbz9OtFR+BfOkfU=
+
+angular7-data-table@^1.0.9:
+  version "1.0.13"
+  resolved "https://registry.yarnpkg.com/angular7-data-table/-/angular7-data-table-1.0.13.tgz#94497af7c77f881a3192d4942dd64eff16e38c86"
+  integrity sha512-MAs7e9P9WuoTkYko1H0rhvMtRoI56erK8gCFJp3xX41nYcV3uI0czXKiFePTY32ayOiWCRcp4sNk9u/R6+phfA==
+  dependencies:
+    ngx-popup-dialog "^1.0.8"
+    tslib "^1.9.0"
 
 ansi-colors@^3.0.0:
   version "3.2.4"
@@ -1968,9 +1992,9 @@ decamelize@^2.0.0:
     xregexp "4.0.0"
 
 decode-uri-component@^0.2.0:
-  version "0.2.0"
-  resolved "http://localhost:4873/decode-uri-component/-/decode-uri-component-0.2.0.tgz#eb3913333458775cb84cd1a1fae062106bb87545"
-  integrity sha1-6zkTMzRYd1y4TNGh+uBiEGu4dUU=
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/decode-uri-component/-/decode-uri-component-0.2.2.tgz#e69dbe25d37941171dd540e024c444cd5188e1e9"
+  integrity sha512-FqUYQ+8o158GyGTrMFJms9qh3CqTKvAqgqsTnkLI8sKu0028orqBhxNMFkFen0zGyg6epACD32pjVk58ngIErQ==
 
 deep-equal@^1.0.1:
   version "1.0.1"
@@ -4651,6 +4675,13 @@ neo-async@^2.5.0, neo-async@^2.6.0:
   resolved "http://localhost:4873/neo-async/-/neo-async-2.6.0.tgz#b9d15e4d71c6762908654b5183ed38b753340835"
   integrity sha512-MFh0d/Wa7vkKO3Y3LlacqAEeHK0mckVqzDieUKTT+KGxi+zIpeVsFxymkIiRpbpDziHc290Xr9A1O4Om7otoRA==
 
+ngx-popup-dialog@^1.0.8:
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/ngx-popup-dialog/-/ngx-popup-dialog-1.0.8.tgz#1133f60a3894009325af72346b043616cfab2d04"
+  integrity sha512-t3gkykSW7zm04Cl0m+iScwfHGtpeTrtGFPUvOxv6vgSBdgF/aixCnhRbBZQfWeqoE853fvF7qlm4qWzwyPhrKg==
+  dependencies:
+    tslib "^1.9.0"
+
 nice-try@^1.0.4:
   version "1.0.5"
   resolved "http://localhost:4873/nice-try/-/nice-try-1.0.5.tgz#a3378a7696ce7d223e88fc9b764bd7ef1089e366"
@@ -5156,6 +5187,11 @@ parse5@4.0.0:
   version "4.0.0"
   resolved "http://localhost:4873/parse5/-/parse5-4.0.0.tgz#6d78656e3da8d78b4ec0b906f7c08ef1dfe3f608"
   integrity sha512-VrZ7eOd3T1Fk4XWNXMgiGBK/z0MG48BWG2uQNU4I72fkQuKUTZpl+u9k+CxEG0twMVzSmXEEz12z5Fnw1jIQFA==
+
+parse5@^5.0.0:
+  version "5.1.1"
+  resolved "https://registry.yarnpkg.com/parse5/-/parse5-5.1.1.tgz#f68e4e5ba1852ac2cadc00f4555fff6c2abb6178"
+  integrity sha512-ugq4DFI0Ptb+WWjAdOK16+u/nHfiIrcE+sh8kZMaM0WllQKLI9rOUq6c2b7cwPkXdzfQESqvoqK6ug7U/Yyzug==
 
 parseqs@0.0.5:
   version "0.0.5"
@@ -6931,6 +6967,11 @@ ts-node@~7.0.0:
     mkdirp "^0.5.1"
     source-map-support "^0.5.6"
     yn "^2.0.0"
+
+tslib@^1.7.1:
+  version "1.14.1"
+  resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.14.1.tgz#cf2d38bdc34a134bcaf1091c41f6619e2f672d00"
+  integrity sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==
 
 tslib@^1.8.0, tslib@^1.8.1, tslib@^1.9.0:
   version "1.9.3"
